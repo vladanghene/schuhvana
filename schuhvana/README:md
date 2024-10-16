@@ -1,0 +1,50 @@
+# Schuhvana
+
+Schuhvana is an online marketplace for fashionable sports shoes, built using Vue.js.
+
+## Project setup
+
+```bash
+npm install
+```
+
+Compiles and hot-reloads for development
+
+```bash
+npm run build
+```
+
+Lints and fixes files
+```bash
+npm run lint
+```
+
+Features
+
+	•	Product listing with filters
+	•	Shopping cart and checkout
+	•	User login and registration
+	•	Order history
+	•	Search functionality
+
+Technologies Used
+
+	•	Vue 3
+	•	Vuex (State management)
+	•	Vue Router (Routing)
+	•	Axios (API calls)
+
+Folder Structure
+
+	•	src/components: Reusable Vue components
+	•	src/views: Application pages (Home, Product, Cart, Checkout, etc.)
+	•	src/store: Vuex store for state management
+	•	src/utils: Utility functions (API calls, validators, etc.)
+
+Configuration
+
+Make sure to add your API URL in a .env file:
+
+```bash
+VUE_APP_API_URL=https://api.example.com
+```
