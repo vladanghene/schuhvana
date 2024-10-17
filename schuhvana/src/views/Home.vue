@@ -12,11 +12,6 @@
         </div>
       </div>
     </section>
-    <!-- Discover Classics Section -->
-  
-
-    <!-- Shop by Sport Section -->
-    
   </div>
 </template>
 
@@ -64,8 +59,8 @@ export default {
 
 .categories-container {
   display: flex;
-  justify-content: center;
-  gap: 50px; /* Spacing between categories */
+  flex-direction: column; /* Stack categories vertically */
+  gap: 2rem; /* Add space between categories */
 }
 
 .category {

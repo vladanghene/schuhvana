@@ -81,9 +81,9 @@ export default {
               price: 120,
               brand: 'Nike',
               images: [
-                'path/to/nike-air-max-image1.jpg',
-                'path/to/nike-air-max-image2.jpg',
-                'path/to/nike-air-max-image3.jpg'
+                'puma-rs-x/img1.png',
+                'puma-rs-x/img1.png',
+                'puma-rs-x/img1.png'
               ],
               sizes: [7, 8, 9, 10, 11],
               description: 'A modern take on the classic Air Max, offering great comfort and style.',
@@ -96,9 +96,9 @@ export default {
               price: 140,
               brand: 'Adidas',
               images: [
-                'path/to/adidas-ultraboost-image1.jpg',
-                'path/to/adidas-ultraboost-image2.jpg',
-                'path/to/adidas-ultraboost-image3.jpg'
+                'puma-rs-x/img1.png',
+                'puma-rs-x/img1.png',
+                'puma-rs-x/img1.png'
               ],
               sizes: [6, 7, 8, 9, 10],
               description: 'The Ultraboost provides superior cushioning and energy return, making it perfect for runners.',
@@ -111,9 +111,14 @@ export default {
               price: 110,
               brand: 'Puma',
               images: [
-                'path/to/puma-rsx-image1.jpg',
-                'path/to/puma-rsx-image2.jpg',
-                'path/to/puma-rsx-image3.jpg'
+                'puma-rs-x/img1.png',
+                'puma-rs-x/img2.png',
+                'puma-rs-x/img3.png',
+                'puma-rs-x/img4.png',
+                'puma-rs-x/img5.png',
+                'puma-rs-x/img6.png',
+                'puma-rs-x/img7.png',
+                'puma-rs-x/img8.png',
               ],
               sizes: [7, 8, 9, 10],
               description: 'RS-X is known for its bold look and maximum comfort, perfect for everyday wear.',

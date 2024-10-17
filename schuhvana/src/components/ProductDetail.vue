@@ -5,7 +5,7 @@
       <img
         v-for="image in product.images"
         :key="image"
-        :src="image"
+        :src="getImagePath(image)"
         @click="setMainImage(image)"
         :class="{ selected: image === mainImage }"
         alt="Product image"
@@ -87,7 +87,7 @@ export default {
   },
   methods: {
     setMainImage(image) {
-      this.mainImage = image;
+      this.mainImage = require(`@/assets/images/${image}`);
     },
     selectSize(size) {
       this.selectedSize = size;
@@ -97,22 +97,33 @@ export default {
     },
     toggleDetails() {
       this.showDetails = !this.showDetails;
+    },
+    getImagePath(image) {
+      try {
+        return require(`@/assets/images/${image}`);
+      } catch (error) {
+        console.error('Image not found:', image);
+        return ''; // Fallback in case the image is not found
+      }
     }
+
   }
 };
 </script>
   
   <style scoped>
-  .product-page {
+.product-page {
   display: flex;
-  gap: 2rem;
+  justify-content: center; /* Center the content horizontally */
+  align-items: center; /* Center the content vertically */
   padding: 2rem;
+  gap: 2rem; /* Add space between the image gallery and the main image */
 }
 
 .image-gallery {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem; /* Add space between images in the gallery */
 }
 
 .image-gallery img {
@@ -126,9 +137,13 @@ export default {
   border: 2px solid #000;
 }
 
+.main-product-image {
+  flex-grow: 1;
+}
+
 .main-product-image img {
-  width: 100%;
-  max-width: 400px;
+  width: 80%; /* Make the main product image 5 times bigger */
+  max-width: none;
 }
 
 .product-info {
