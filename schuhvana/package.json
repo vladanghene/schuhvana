@@ -3,25 +3,26 @@
     "version": "1.0.0",
     "description": "Schuhvana - Online Marketplace for Fashionable Sports Shoes",
     "scripts": {
-      "serve": "vue-cli-service serve",
-      "build": "vue-cli-service build",
-      "lint": "vue-cli-service lint"
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build",
+        "lint": "vue-cli-service lint"
     },
     "dependencies": {
-      "axios": "^0.24.0",
-      "core-js": "^3.6.5",
-      "vue": "^3.0.0",
-      "vue-router": "^4.0.0",
-      "vuex": "^4.0.0"
+        "axios": "^0.24.0",
+        "core-js": "^3.6.5",
+        "dotenv": "^16.4.5",
+        "vue": "^3.0.0",
+        "vue-router": "^4.0.0",
+        "vuex": "^4.0.0"
     },
     "devDependencies": {
-      "@vue/cli-plugin-babel": "~4.5.0",
-      "@vue/cli-service": "~4.5.0",
-      "@vue/compiler-sfc": "^3.0.0"
+        "@vue/cli-plugin-babel": "~4.5.0",
+        "@vue/cli-service": "~4.5.0",
+        "@vue/compiler-sfc": "^3.0.0"
     },
     "browserslist": [
-      "> 1%",
-      "last 2 versions",
-      "not dead"
+        "> 1%",
+        "last 2 versions",
+        "not dead"
     ]
-  }
+}

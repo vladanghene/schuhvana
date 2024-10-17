@@ -29,16 +29,16 @@
       };
     },
     computed: {
-      ...mapGetters('products', ['allProducts']),
+      ...mapGetters('products', ['productList']),
       filteredProducts() {
         // Apply any additional filtering logic here, such as categories and price
-        return this.allProducts.slice(
+        return this.productList.slice(
           (this.currentPage - 1) * 10,
           this.currentPage * 10
         );
       },
       totalPages() {
-        return Math.ceil(this.allProducts.length / 10);
+        return Math.ceil(this.productList.length / 10);
       },
     },
     methods: {
