@@ -4,7 +4,8 @@
     <div class="product-row">
       <div v-for="product in products" :key="product.id" class="product-card">
         <div class="product-card">
-          <router-link :to="{ name: 'ProductPage', params: { id: product.id } }">
+          <!-- Clickable image and product name -->
+          <router-link :to="{ name: 'ProductPage', params: { id: product.id } }" class="product-link">
             <img :src="product.image" :alt="product.name" />
             <p>{{ product.name }}</p>
           </router-link>
@@ -18,8 +19,8 @@
 export default {
   props: {
     title: String,
-    product: {
-      type: Object,
+    products: {
+      type: Array,
       required: true
     },
   },
@@ -51,5 +52,8 @@ export default {
 .product-card p {
   margin-top: 1rem;
   font-size: 1rem;
+  cursor: pointer; /* Show pointer to indicate it's clickable */
+  color: #007bff; /* Make the text stand out as a clickable link */
+  text-decoration: underline; /* Add underline to make it clear it's a link */
 }
 </style>

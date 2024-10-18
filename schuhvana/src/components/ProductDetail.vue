@@ -1,11 +1,11 @@
 <template>
-  <div class="product-page" v-if="product">
+  <div class="product-page">
     <!-- Left-side vertical image gallery -->
-    <div class="image-gallery" v-if="product.images && product.images.length">
+    <div v-if="product && product.images && product.images.length" class="image-gallery">
       <img
         v-for="image in product.images"
         :key="image"
-        :src="getImagePath(image)"
+        :src="`/assets/images/${image}`"
         @click="setMainImage(image)"
         :class="{ selected: image === mainImage }"
         alt="Product image"
@@ -13,14 +13,19 @@
     </div>
 
     <!-- Main product image -->
-    <div class="main-product-image" v-if="mainImage">
+    <div v-if="mainImage" class="main-product-image">
       <img :src="mainImage" :alt="product.name" />
     </div>
 
+    <!-- Fallback for when no product images are available -->
+    <div v-else>
+      <p>Loading product images...</p>
+    </div>
+
     <!-- Product information section -->
-    <div class="product-info">
+    <div v-if="product" class="product-info">
       <h1>{{ product.name }}</h1>
-      <p class="price">${{ product.price }}</p>
+      <p class="price">{{ product.price }}€</p>
 
       <!-- Size selection -->
       <div class="size-selection">
@@ -55,12 +60,11 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Loading state or no product found -->
-  <div v-else>
-    Loading product details...
-    {{ product }}
+    <!-- Fallback for when no product is available -->
+    <div v-else>
+      <p>Loading product details...</p>
+    </div>
   </div>
 </template>
 
@@ -69,25 +73,25 @@ export default {
   props: {
     product: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
       mainImage: null,
       selectedSize: null,
-      showDetails: false
+      showDetails: false,
     };
   },
   mounted() {
     // Check if product and images exist, then set the first image as main image
     if (this.product && this.product.images && this.product.images.length > 0) {
-      this.mainImage = this.product.images[0];
+      this.mainImage = `/assets/images/${this.product.images[0]}`;
     }
   },
   methods: {
     setMainImage(image) {
-      this.mainImage = require(`@/assets/images/${image}`);
+      this.mainImage = `/assets/images/${image}`;
     },
     selectSize(size) {
       this.selectedSize = size;
@@ -98,32 +102,21 @@ export default {
     toggleDetails() {
       this.showDetails = !this.showDetails;
     },
-    getImagePath(image) {
-      try {
-        return require(`@/assets/images/${image}`);
-      } catch (error) {
-        console.error('Image not found:', image);
-        return ''; // Fallback in case the image is not found
-      }
-    }
-
-  }
+  },
 };
 </script>
-  
-  <style scoped>
+
+<style scoped>
 .product-page {
   display: flex;
-  justify-content: center; /* Center the content horizontally */
-  align-items: center; /* Center the content vertically */
+  gap: 2rem;
   padding: 2rem;
-  gap: 2rem; /* Add space between the image gallery and the main image */
 }
 
 .image-gallery {
   display: flex;
   flex-direction: column;
-  gap: 1rem; /* Add space between images in the gallery */
+  gap: 0.5rem;
 }
 
 .image-gallery img {
@@ -137,13 +130,9 @@ export default {
   border: 2px solid #000;
 }
 
-.main-product-image {
-  flex-grow: 1;
-}
-
 .main-product-image img {
-  width: 80%; /* Make the main product image 5 times bigger */
-  max-width: none;
+  width: 100%;
+  max-width: 1000px;
 }
 
 .product-info {
@@ -216,4 +205,4 @@ export default {
 .product-details div {
   margin-top: 1rem;
 }
-  </style>
+</style>

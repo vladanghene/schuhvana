@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+const { defineConfig } = require('@vue/cli-service');
 require('dotenv').config();  // Load environment variables
 
-module.exports = {
+module.exports = defineConfig({
   devServer: {
     proxy: {
       '/api': {
@@ -18,7 +19,15 @@ module.exports = {
     },
     port: 8080,
     host: 'localhost',
-    public: 'https://localhost:8080',  // Public URL for the dev server
+    allowedHosts: 'all',  // Public URL for the dev server
+  },
+  transpileDependencies: true,
+  configureWebpack: {
+    resolve: {
+      alias: {
+        vue$: 'vue/dist/vue.esm-bundler.js',
+      },
+    },
   },
   css: {
     loaderOptions: {
@@ -30,4 +39,4 @@ module.exports = {
       },
     },
   },
-};
+});
