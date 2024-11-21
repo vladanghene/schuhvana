@@ -9,8 +9,21 @@
             <img :src="product.image" :alt="product.name" />
             <p>{{ product.name }}</p>
           </router-link>
+          <p>Price: ${{ product.price }}</p>
+          <button @click="addToCart(product)">Add to Cart</button>
         </div>
       </div>
+    </div>
+    <div class="cart">
+      <h3>Cart</h3>
+      <ul>
+        <li v-for="item in cart" :key="item.id">
+						<img src={{item.images.[0]}}></img>
+						{{ item.name }} - ${{ item.price }} x {{ item.quantity }}
+        </li>
+      </ul>
+      <p>Total: ${{ cartTotal }}</p>
+      <button @click="clearCart">Clear Cart</button>
     </div>
   </div>
 </template>
@@ -24,6 +37,29 @@ export default {
       required: true
     },
   },
+  data() {
+    return {
+      cart: []
+    };
+  },
+  computed: {
+			cartTotal(){
+				return this.cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+			}
+	},
+  methods: {
+    addToCart(product) {
+      const cartItem = this.cart.find(item => item.id === product.id);
+      if (cartItem) {
+        cartItem.quantity++;
+      } else {
+        this.cart.push({ ...product, quantity: 1 });
+      }
+    },
+    clearCart() {
+      this.cart = [];
+    }
+  }
 };
 </script>
 
@@ -53,8 +89,18 @@ export default {
 .product-card p {
   margin-top: 1rem;
   font-size: 1rem;
-  cursor: pointer; /* Show pointer to indicate it's clickable */
-  color: #007bff; /* Make the text stand out as a clickable link */
-  text-decoration: underline; /* Add underline to make it clear it's a link */
+}
+
+.cart {
+  margin-top: 2rem;
+}
+
+.cart ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.cart li {
+  margin-bottom: 0.5rem;
 }
 </style>

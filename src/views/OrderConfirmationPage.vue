@@ -6,13 +6,13 @@
       <router-link to="/" class="back-to-home">Continue Shopping</router-link>
     </div>
   </template>
-  
+
   <style scoped>
   .order-confirmation-page {
     padding: 2rem;
     text-align: center;
   }
-  
+
   .back-to-home {
     display: inline-block;
     margin-top: 2rem;

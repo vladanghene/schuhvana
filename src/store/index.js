@@ -8,6 +8,11 @@ import reviews from './modules/reviews';
 import search from './modules/search';
 
 export default createStore({
+		state: {
+				cart: []
+		},
+
+  actions: {},
   modules: {
     cart,
     categories,
@@ -18,3 +23,4 @@ export default createStore({
     search,
   },
 });
+
