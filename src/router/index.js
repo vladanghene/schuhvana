@@ -7,6 +7,8 @@ import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import UserAccount from '../views/UserAccount.vue';
 import OrderConfirmationPage from '../views/OrderConfirmationPage.vue';
+import CategoryPage from '../views/CategoryPage.vue';
+import Privacy from '../views/Privacy.vue';
 
 const routes = [
   {
@@ -17,12 +19,18 @@ const routes = [
   {
     path: '/product/:id',
     name: 'ProductPage',
-    component: () => import('@/views/ProductPage.vue')
+    component: ProductPage
   },
   {
     path: '/cart',
     name: 'CartPage',
     component: CartPage,
+  },
+  {
+    path: '/category/:categoryname',
+    name: 'Category',
+    component: CategoryPage,
+    props: true
   },
   {
     path: '/checkout',
@@ -49,6 +57,11 @@ const routes = [
     name: 'OrderConfirmationPage',
     component: OrderConfirmationPage,
   },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: Privacy,
+  }
 ];
 
 const router = createRouter({

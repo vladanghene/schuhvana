@@ -41,11 +41,12 @@ export default {
 .product-card {
   min-width: 200px;
   text-align: center;
+  cursor: pointer;
 }
 
 .product-card img {
   width: 100%;
-  height: 200px;
+  height: auto;
   object-fit: cover;
 }
 

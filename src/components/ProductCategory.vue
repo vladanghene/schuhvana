@@ -1,24 +1,36 @@
 <template>
-  <div class="product-category">
-    <!-- Section Title -->
-    <h2 class="category-title">{{ title }}</h2>
+  <div class="category-page">
+    <div class="container">
+      <Breadcrumbs />
+      <!-- Section Header -->
+      <div class="category-header">
+        <h2 class="category-title">{{ title }}</h2>
+        <router-link :to="categoryLink" class="view-all">View All</router-link>
+      </div>
 
-    <!-- Product Grid -->
-    <div class="product-grid">
-      <div v-for="(product, index) in products" :key="index" class="product-card">
-        <div class="image-container">
-          <img :src="product.image" :alt="product.name" />
-
-          <!-- Product Name Button Overlay -->
-          <button class="product-name">{{ product.name }}</button>
-        </div>
+      <!-- Product Grid -->
+      <div class="product-grid">
+        <SingleProductCard
+          v-for="product in products"
+          :key="product.id"
+          :product="product"
+          class="product-card"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import SingleProductCard from './SingleProductCard.vue';
+import Breadcrumbs from '@/components/Breadcrumbs.vue';
+
 export default {
+  name: 'ProductCategory',
+  components: {
+    SingleProductCard,
+    Breadcrumbs
+  },
   props: {
     title: {
       type: String,
@@ -27,61 +39,59 @@ export default {
     products: {
       type: Array,
       required: true,
-    },
+    }
+  },
+  computed: {
+    categoryLink() {
+      // Convert the category title to a URL-friendly format
+      return `/${encodeURIComponent(this.title)}`;
+    }
   }
 };
 </script>
 
 <style scoped>
+/* Category header styling */
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
 /* Title styling */
 .category-title {
   font-size: 1.75rem;
-  text-align: left;
-  margin-bottom: 1.5rem;
+  margin: 0;
+}
+
+/* View All link styling */
+.view-all {
+  color: #000;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border: 1px solid #000;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.view-all:hover {
+  background-color: #000;
+  color: #fff;
 }
 
 /* Product grid styling */
 .product-grid {
-  display: flex;
-  gap: 1.5rem;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
 }
 
-/* Individual product card */
-.product-card {
-  position: relative;
-  width: 100%;
-}
-
-/* Image container */
-.image-container {
-  position: relative;
-  overflow: hidden;
-}
-
-/* Product image styling */
-.image-container img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  border-radius: 10px; /* Optional to make the images look smoother */
-}
-
-/* Product name button (styled like the image you provided) */
-.product-name {
-  position: absolute;
-  bottom: 15px;
-  left: 15px;
-  background-color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  border-radius: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-}
-
-.product-name:hover {
-  background-color: #f1f1f1;
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 }
 </style>

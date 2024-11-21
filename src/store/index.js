@@ -1,5 +1,6 @@
 import { createStore } from 'vuex';
 import cart from './modules/cart';
+import categories from './modules/categories';
 import products from './modules/products';
 import user from './modules/user';
 import wishlist from './modules/wishlist';
@@ -9,6 +10,7 @@ import search from './modules/search';
 export default createStore({
   modules: {
     cart,
+    categories,
     products,
     user,
     wishlist,

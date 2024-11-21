@@ -1,54 +1,59 @@
 <template>
-    <div v-if="product" class="product-page">
-      <ProductDetail :product="product" />
-    </div>
-    <div v-else>
-      Loading...
-    </div>
-  </template>
+  <div v-if="product" class="product-page">
+    <ProductDetail :product="product" />
+  </div>
+  <div v-else class="loading">
+    Loading...
+  </div>
+</template>
 
-  <script>
-  import ProductDetail from '../components/ProductDetail.vue';
-  import { mapGetters, mapActions } from 'vuex';
+<script>
+import ProductDetail from '../components/ProductDetail.vue';
+import { mapGetters, mapActions } from 'vuex';
 
-  export default {
-    components: {
-      ProductDetail
-    },
-    mounted() {
-      const productId = this.$route.params.id;
-      console.log('Product ID from route:', productId); // Log the route param
-      this.fetchProductById(productId); // Fetch the product by ID
-    },
-    computed: {
-      ...mapGetters('products', {
-      product: 'product', // Map the `product` getter from Vuex
-      productList: 'productList'  // Use your getter for the full product list
-      })},
-    async mounted() {
-      try {
-        const productId = this.$route.params.id;
-        await this.fetchProducts();  // Fetch all products first
-
-        // Check if productList is empty; if so, fetch products first
-        if (!this.productList.length) {
-          console.log('Product list is empty. Fetching all products...');
-          await this.fetchProducts();  // Fetch all products first
-        }
-
-        // Fetch the product by ID
-        await this.fetchProductById(productId);
-      } catch (error) {
-        console.error('Error during mounted hook:', error);
-      }},
-    methods: {
-    ...mapActions('products', ['fetchProductById', 'fetchProducts']) // Dispatch the action to fetch product by ID
-    },
-  };
-  </script>
-
-  <style scoped>
-  .product-page {
-    padding: 2rem;
+export default {
+  name: 'ProductPage',
+  components: {
+    ProductDetail
+  },
+  computed: {
+    ...mapGetters('products', {
+      product: 'product',
+      allProducts: 'allProducts'
+    })
+  },
+  methods: {
+    ...mapActions('products', ['fetchProductById', 'initializeProducts'])
+  },
+  async mounted() {
+    try {
+      const productId = parseInt(this.$route.params.id);
+      
+      // Initialize products if needed
+      if (!this.allProducts.length) {
+        await this.initializeProducts();
+      }
+      
+      // Fetch the specific product
+      await this.fetchProductById(productId);
+    } catch (error) {
+      console.error('Error loading product:', error);
+    }
   }
-  </style>
+};
+</script>
+
+<style scoped>
+.product-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.2em;
+  color: #666;
+}
+</style>

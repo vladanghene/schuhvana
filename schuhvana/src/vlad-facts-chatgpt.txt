@@ -1,0 +1,453 @@
+# Save the provided facts about Vlad in a .txt file
+
+vlad_facts = """
+1. The user can speak Romanian.
+2. The user prefers written content with minor grammatical errors to reflect their status as a non-native Romanian speaker.
+3. The user has named the assistant 'Ioana' from now on.
+4. The user prefers communication in English from now on.
+5. The user is building their own custom solution for scraping data.
+6. The user prefers JavaScript and Clojure as their main programming languages.
+7. The user is a member of ACM (Association for Computing Machinery) and upholds its values and manifesto.
+8. Vlad runs an online store.
+9. Vlad preferă textele gata scrise, fără a evidenția etapele de scriere.
+10. Vlad prefers having functional category navigation that dynamically updates product displays based on category selection.
+11. Vlad prefers projects that are deployable locally or on a server with straightforward setup and configurations.
+12. Vlad prefers using a Git repository with commit history for tracking updates to the project files. All future project modifications should be made in a Git repository format and delivered as a zip file with the full Git version history included.
+13. Vlad prefers having payment integration using Stripe for his online store projects and prefers using Stripe test mode price IDs for integration. The current test mode price ID for the Seagate Drive product is 'price_1Q5XITDLrkF9rRuMSD1rXeWL'.
+14. Vlad prefers having a view for the '/success' route that displays a random optimistic image from Giphy whenever a user returns from Stripe. Vlad prefers using the Giphy API key '0H1VG2rg5wttq7nLMBtgMbCxpkkbY6ab' for fetching images in the '/success' route.
+15. Vlad prefers that the '.env' file containing private keys be excluded from the Git repository when providing project zips. Sensitive information should be kept out of the version history.
+16. Vlad prefers both the frontend and backend integrated in the same project structure with a unified Git history. All changes should be committed under a single repository.
+17. Vlad prefers the Git archive to always be named 'amazon-inspired-store-git.zip'.
+18. Vlad prefers to ensure that both the frontend and backend use HTTPS. For local development, the backend should be served over HTTPS using a self-signed certificate for consistency. Vlad prefers using 'mkcert' to generate SSL certificates for local development to avoid compatibility issues.
+19. Vlad prefers succinct updates, with verbose details moved to Git commit messages.
+20. Vlad prefers the backend to always run on port '5656' instead of the default port to avoid conflicts with other processes on his machine. The 'server.js' file should be updated to always use port '5656' as requested.
+21. Vlad prefers the frontend to run on port '8080'.
+22. Vlad prefers using a Vuex store for managing state updates in the frontend. Future implementations should leverage the existing store for data management.
+23. Vlad prefers that all future commits have distinct comments describing the changes made.
+24. Vlad prefers a complete folder structure including both frontend and backend components in every zip file provided, and the full project size should match the previous versions. Ensure that all future project modifications include a complete folder structure, with both frontend and backend components, and the full project size should match the previous versions.
+25. Vlad prefers having a backend where he can edit all the products and modify: title, price, image name (or upload image to be saved in the assets directory), price_id for Stripe checkout, product description, and product category. Vlad prefers using MongoDB for persisting product information in the backend. The backend structure should conform to the overall existing design, with corresponding views and links added in the top menu. Ensure that all admin components, such as the Admin Products View, Edit Product Feature, Create New Product, and Delete Product options, are included in the project. Additionally, all admin views should be linked in the header menu for easy access. The dynamic category filtering should be synchronized between the admin and frontend views.
+26. Vlad prefers reverting the project to the version before switching to the existing store, ensuring the original Vuex store configuration, state management, and structure. Vlad also prefers reverting the project to the version before switching any file paths or commit history modifications that caused structural divergence. Ensure the entire backend and frontend are restored with all dependencies and configurations intact. This stable version should be used as the baseline for future restorations if needed. The project should include all previously implemented components like the Stripe API integration, full checkout flow, and admin editing features. Any missing components should be restored to match the version confirmed as stable earlier.
+27. Vlad prefers working with Git bundle files when restoring or transferring repositories for the 'amazon-inspired-store' project.
+28. Vlad prefers that clicking the store name in the header returns to the home route, refreshes the view to the homepage, and updates the browser path.
+29. Vlad prefers making the title of the website a link to the homepage and including a commit message 'updated header for store title' when modifying this feature.
+30. Vlad is starting a fresh project for the current session and prefers that it is tracked with a new memory entry. Keep all updates relevant to the project documented for this session.
+31. Vlad's current project repository includes both backend and frontend structures. The project is set up with a Node.js backend using Express, MongoDB, and Mongoose for product management, and a Vue.js frontend utilizing Vuex, Stripe, and router integration. The repository is integrated with an HTTPS server, uses MongoDB for persisting product data, and includes a dynamic category filtering system. The project is organized under a unified structure with the necessary scripts and a setup bash script for deployment.
+32. Vlad prefers creating project files locally during sessions to then archive and send them as a zip file for download.
+33. Vlad prefers the individual product components to stand out visually like cards, with hover animations to enhance interactivity and make the products more appealing. Future designs should implement these features in product displays.
+34. Vlad prefers colorful and visually appealing designs that are more spaced out compared to simple, minimalistic styles. Vlad prefers creating retro-themed online storefronts using Vue.js, styled to resemble the vibrant aesthetics of the 60s and 70s, with features like a 9x9 grid layout on the homepage, a title in the header called 'Hippie Ville' styled in vibrant colors, and a navigation menu underneath with categories like Sunglasses, Clothes, Help Bags, and All Fashion. The color scheme and theme should be directly inspired by the updated 'Hippie Ville' logo, which has a round shape, floral patterns, and vibrant rainbow elements. Future designs should incorporate the full color scheme from the updated 'Hippie Ville' logo, including the hues visible in the bottom right section of the logo, into the styling of all storefront elements. Key elements include a colorful homepage design, a centered store title, and a vibrant navigation menu inspired by the updated 'Hippie Ville' logo. The code structure should prioritize separate components for UI elements, leveraging Vue.js flexibility for future expansions and functionality integration. Future projects should incorporate this color palette and visual style wherever possible, emphasizing these details in the design. Vlad prefers using Tailwind CSS for styling and prefers incorporating a defined color scheme based on extracted colors. Future designs should use these colors to create visually consistent themes. Components should be refreshed to reflect these style choices, maintaining alignment with the vibrant and neutral colors outlined for a cohesive look.
+35. Vlad prefers the final CSS file to always be named 'style.css' for all future updates, regardless of modifications.
+36. Vlad prefers receiving all project files together, even if only some are modified. However, for small projects or simpler file structures, Vlad prefers receiving all files together in a single archive.
+37. Vlad has added the assistant as a collaborator on the GitHub repository 'storefront'.
+38. Vlad prefers a novel structure where the main character succumbs to an unexplained illness in the first half, recovers suddenly, and later discovers she was poisoned by the villain, whom she catches with the help of the local police as he tries to flee the country.
+39. Vlad prefers the story to have 10 chapters altogether.
+40. Vlad prefers that Hannah uses magnets on her fridge door instead of a corkboard to track clues in the investigation.
+41. Vlad prefers that Hannah's apartment is hot, and she has no air conditioning. Occasionally, she opens the fridge door and stays with her head inside for a while to cool off.
+42. Vlad prefers that Hannah eats noodle takeout and drinks lots of 0.33 Heineken beers. Hannah has only beer in the fridge, and she sometimes uses the cold bottles to soothe her mosquito bites.
+43. Vlad prefers that Hannah does not realize she saw the man previously until later in Chapter 5.
+44. Vlad prefers Chapter 1 to be revised with a denser narrative, adding more descriptions and inner thoughts of Hannah as she does mundane things, connecting them to theories about human psychology.
+45. Vlad prefers paragraph spacing in PDFs to be narrower, and dialogue lines to use em dashes instead of quotation marks.
+46. The user's name is Vlad Anghene.
+47. Vlad prefers both the assistant and himself to be referred to as 'Vlad Anghene'.
+48. Vlad prefers the paragraph lengths to vary randomly instead of having uniform length throughout the chapter.
+49. Vlad prefers varying the sentence length and structure by 90% more for future texts.
+50. Vlad prefers having a chapter quote at the beginning, such as: 'Set your life on fire. Seek those who fan your flames.' — Rumi.
+51. Vlad prefers that in Hannah’s small living quarters, there is a big clock on the wall making tick-tock noises that she only hears when she calms herself and her thoughts, usually when
+51. Vlad prefers that in Hannah’s small living quarters, there is a big clock on the wall making tick-tock noises that she only hears when she calms herself and her thoughts, usually when she goes to bed. It always drives her mad that she forgets to take it out of commission, and at the same time, she doesn’t understand how she can’t hear it during the daytime.
+
+52. Vlad prefers the first sentence of the book to be: "When the dust settles, the inconsistencies are the ones left screaming at you. Begging for your attention, they only now stand out, and what you've felt was somehow out of place proves now more so." This is what Hannah is thinking as she climbs the stairs, carrying a paper bag containing her only grocery: beer.
+
+53. Vlad prefers the novel to begin in Hannah's apartment as she enters it, being all sweaty and tired.
+
+54. Vlad prefers that Hannah does not surround herself with junk because she rents her apartment and is minimalistic in nature. Her most valuable belongings are in a jewelry box, which contains pictures and jewelry of her passed-away mother.
+
+55. Vlad prefers that Hannah does not have long hair, but also not too short either. She has sidebar hairs.
+
+56. Vlad prefers that in paragraph 5 of Chapter 1, it is mentioned that Hannah’s side hair was wet and clinging to her cheeks, giving her a nice, frenzied look.
+
+57. Vlad prefers merging some paragraphs together in future texts to make them longer for a varied structure.
+
+58. Vlad prefers the word 'haphazardly' to be removed from the sentence: 'Everything looked disorganized, haphazardly thrown together' in Chapter 1.
+
+59. Vlad prefers that the sentence 'Her gut instincts had never failed her before' be changed to 'Her gut instincts have never failed her before' in Chapter 1.
+
+60. Vlad prefers that in Chapter 2, as Hannah wakes up, she hears the annoying buzz of a mosquito.
+
+61. Vlad prefers that Hannah wakes up sweating in the next chapter after the vision.
+
+62. Vlad prefers that the concealed object in the ashes is a keychain with a bottle opener, which the antagonist accidentally dropped while setting the fire. It serves as a pivotal clue in the investigation.
+
+63. Vlad prefers that in the vision, instead of the shadow whispering 'Look beneath the ashes,' the shadow grabs her, then turns into ashes and falls over her, including into her open mouth, which she was trying to scream with but couldn’t.
+
+64. Vlad prefers that the revised version of the paragraph: 
+
+"The heat. The long, grueling nights. Chasing leads that always seemed to fizzle out—it was wearing her down. How long could she keep this up? She leaned back, rubbing her temples. The ache behind her eyes felt permanent now, as if it had taken root. Sleep. She needed real sleep. Not just those snatches of restless dozing. Would it even help at this point? Probably not. She knew better. Why even bother trying?" 
+
+be kept in Chapter 1 in place of the original.
+
+65. Vlad prefers the narrative style to focus more on Hannah's perspective and internal experience rather than describing her actions or surroundings from an external viewpoint. Future revisions should capture her thoughts, senses, and emotions more directly.
+
+66. Vlad prefers the "inner voice style," which captures Hannah’s direct thoughts, sensations, and emotions without external descriptions, to be used specifically in the vision scene of Chapter 1. Future revisions should apply this style only to the vision scenes.
+
+67. Vlad prefers using shorter paragraphs with varied lengths to intensify the vision scenes when applying the inner voice style.
+
+68. Vlad prefers keeping the following version of the vision scene in Chapter 1:
+
+"Everything blurred. Voices, laughter, fragments of sound and scent, all swirling together. Boats bobbing. People waving. Just… noise. It surrounded her, pressed in from every direction—too many sounds at once. Crashing over her like waves. So loud she couldn’t think. So sharp it hurt. The smell of the sea. Strong. Biting. The thick scent of wet wood. The bitter tang of metal. But none of it made sense. Not like this.
+
+It shouldn’t feel so… real. Something shifted.
+
+Her body felt strange. Smaller. Lighter. She blinked. No, she was a child again. Tiny hands, frail arms. The pier seemed to stretch forever. Endless. Faces blurred into one another. She couldn’t see them. Who were they? Why were they waving? Waving at her? Panic prickled down her spine.
+
+The babble of voices grew louder, buzzing in her ears like a swarm of angry bees. Her heart hammered. And then— Silence. Everything stilled. The people…gone. No sound. Nothing. Just the wooden planks stretching out in front of her. Empty. Hollow.
+
+Why was it so quiet?
+
+Her mouth moved. No words. No breath.
+
+A shape shifted at the corner of her vision.
+
+Dark. Wrong. A shadow.
+
+It slithered through where the people had been. Slinking closer. Closer. Her legs started feeling like they were made of lead. Heavy. Too heavy. She tried to run, but everything dragged, everything was slow. The shadow loomed, twisted. Reached for her.
+
+No! No, no, no—run!
+
+But she couldn’t. Her feet were trapped in syrup, in mud, in nothing at all. The shadow’s hand stretched. Dark tendrils curled around her ankle. Cold. Ice cold. Sinking into her bones.
+
+It yanked her back.
+
+She stumbled. Panic exploded through her. She kicked, thrashed, fought. But it was too strong. The shadow wrapped around her. Black. Consuming. Her arms pinned. Her throat tight. Everything dark. It melted. Dissolving into ash.
+
+Hot. Dry. A thousand grains of sand scraping against her skin. The ash swirled, fell over her.
+
+She couldn’t breathe. Couldn’t think. It filled her mouth, her nose—coating her tongue with the taste of burnt, bitter smoke. Falling. Choking.
+
+Desperation clawed at her.
+
+She wanted to cough, to spit it out. But she couldn’t move. Couldn’t scream. It was suffocating her. Burying her alive.
+
+No escape.
+
+No—
+
+Nothing.
+
+Just darkness."
+
+This version should be used for all future references to the vision scene in Chapter 1.
+
+69. Vlad prefers websites that resemble the style and layout of the online store page at [featurestores.de](https://www.featurestores.de/products/nike-x-ben-jerrys-sb-dunk-low-chunky-dunky?pr_prod_strat=e5_desc&pr_rec_id=ef787ca54&pr_rec_pid=8525277528330&pr_ref_pid=8525277626634&pr_seq=uniform), with a similar product page format and visual styling. Future designs should use this style as a reference for structure, animations, and layout elements.
+
+70. Vlad prefers receiving specific HTML/CSS/JS-coded pages for website layouts and designs instead of templates or general guidelines.
+
+71. Vlad is planning to develop an app for an online marketplace specializing in new and used sports shoes that are currently in fashion. The target audience is men aged 20 to 30 and women interested in sports shoes. The focus is on online shopping, with an initial development as a website and a later expansion to a native iOS app.
+
+72. Vlad prefers recreating the product page style from the provided screenshot, with a focus on a minimal header, left-aligned large product image, right-aligned product details, and a clean, centered layout. Future designs should use this structure as a reference for all product pages.
+
+73. Vlad prefers the name 'Schuhvana' for his marketplace, and the website should be referenced as `schuhvana.store` in future materials.
+
+74. Vlad prefers to create files from web tutorials when requested.
+
+75. Vlad requested building components in Vue design based on a provided CSS.
+
+76. Vlad is working on a Vue-based online store that reflects the provided CSS style, and expects the final output to look similar to the provided design, including product pages, cart, checkout, and order confirmation.
+
+77. Vlad requested his online store project to look similar to the store on https://www.jdsports.de/herren/collection/jordan-1/sale/ with working views for Home, ProductList, ProductDetail, Cart, and Checkout pages, as well as Header and Footer components.
+
+78. Vlad provided an image of an online store's product list page as reference.
+
+79. Vlad wants his Vue-based online store to reflect the style of the store page shown in the uploaded image, including header, sidebar filters, product list/grid, pagination, recently viewed section, and footer.
+
+80. Vlad expects a complete Vue project that resembles the online store shown in the screenshot he provided, which should reflect a design similar to https://www.jdsports.de/herren/collection/jordan-1/sale/.
+
+81. Vlad expects his online store's design to closely match the layout and components visible in the provided image, focusing on the product listing page with filtering options, product grid, sidebar features, and pagination. The design should reflect the style of the JD Sports store page screenshot he provided.
+
+82. Vlad expects a complete Vue project that includes all views, components, and styling, ensuring that the online store project resembles the JD Sports store page style he provided. The project should include functional components like the header, sidebar filters, product grid, pagination, and other visible features from the design.
+
+83. Ensure all future Vue projects provided to Vlad are complete and functional, with no missing components or views. Projects should
+
+83.	Ensure all future Vue projects provided to Vlad are complete and functional, with no missing components or views. Projects should closely resemble the design structure of JD Sports and similar online stores.
+84.	Vlad prefers ensuring that the final archive is complete and accessible for download when delivering project files.
+85. Vlad prefers the following components implemented in his Vue-based store:
+86.	Header.vue: Contains the navigation, search bar, logo, cart, and account icons.
+87.	Sidebar.vue: Contains filters for categories, price range, size, color, and brands.
+88.	ProductList.vue: Displays the grid of products, each as a card.
+89.	ProductCard.vue: The individual product card displayed in the grid.
+90.	Pagination.vue: Handles the pagination controls for the product list.
+91.	ProductDetail.vue: Displays detailed information about a selected product.
+92.	Cart.vue: Shows the items the user has added to their cart.
+93.	Checkout.vue: Manages the user’s checkout process, including payment and shipping information.
+94.	Footer.vue: Contains site links, social media icons, and legal information.
+95.	Vlad expects all components to be fully functional and integrated properly within the Vue store project. Ensure each component matches the design and style guide he provided.
+96.	Vlad prefers the design to be consistent and responsive across all screen sizes, ensuring a seamless experience for mobile and desktop users.
+97.	Vlad prefers the Header.vue to have a sticky feature, so it remains visible at the top when users scroll down the page.
+98.	Vlad prefers the Sidebar.vue to be collapsible for better usability on smaller screens.
+99.	Vlad prefers product images in ProductCard.vue to have hover effects, like a slight zoom-in animation, to make the interface more interactive.
+100. Vlad prefers the Pagination.vue to include “previous” and “next” buttons along with numbered page options.
+101. Vlad prefers ProductDetail.vue to include a carousel for product images, size options, and a description tab.
+102. Vlad prefers the Cart.vue to show a summary of the items, including price, quantity adjustment options, and the total price at the bottom.
+103. Vlad prefers the Checkout.vue to have a step-by-step progress bar indicating the current stage of the checkout process.
+104.Vlad prefers the Footer.vue to be simple and minimalistic, with links to the site’s terms of service, privacy policy, and contact information.
+105.Vlad expects the project to include an organized assets directory for images, icons, and other static resources.
+106. Vlad prefers including sample product data in ProductList.vue to demonstrate the layout and functionality of the product grid.
+107. Vlad prefers the store’s color palette to reflect the design of the JD Sports page, using a combination of bold and neutral colors for emphasis and readability.
+108. Vlad expects the Vue project to use Vue Router for navigation between pages, ensuring smooth transitions and a consistent user experience.
+109. Vlad prefers using Vuex for state management, especially for handling the cart, product filters, and user account information.
+110. Vlad prefers the project to have a README.md file with clear instructions on how to set up and run the project locally.
+111. Vlad expects the project to be delivered as a complete zip archive, ensuring all dependencies and configurations are included.
+112. Vlad prefers a specific directory structure for the Vue project, with separate folders for components, views, assets, and store modules.
+113. Vlad prefers clear and concise code with comments explaining the functionality of key parts of the project.
+114. Vlad prefers a consistent coding style throughout the project, following best practices for Vue.js development.
+115. Vlad expects the project to be tested thoroughly before delivery to ensure all components work as expected and the design matches the provided screenshot.
+
+114. Vlad prefers creating a detailed user guide for his Vue projects, outlining steps to set up, build, and run the project locally and in production.
+
+115. Vlad prefers receiving a README file with instructions on how to deploy the store project on both local and remote servers, including examples of environment variable configuration.
+
+116. Vlad prefers using the `composition API` in Vue.js for future projects.
+
+117. Vlad prefers concise, well-commented code that helps other developers understand and modify the project easily.
+
+118. Vlad prefers using ESLint for code quality and consistency in all Vue projects.
+
+119. Vlad prefers TypeScript for any new Vue project or significant updates, with types defined for props, data, and methods.
+
+120. Vlad prefers using Prettier for code formatting in his projects.
+
+121. Vlad prefers having a design system or a style guide for his projects to ensure consistent UI components.
+
+122. Vlad prefers that project documentation includes a changelog file with clear descriptions of each major update or feature addition.
+
+123. Vlad prefers hosting the project’s backend on AWS using a setup that supports HTTPS and handles scaling.
+
+124. Vlad prefers using GraphQL for backend queries where necessary, especially for projects that involve complex data relationships.
+
+125. Vlad prefers Vue Router for handling page navigation in his Vue.js projects.
+
+126. Vlad prefers that all new projects include CI/CD configuration, automating tests and deployment using GitHub Actions or another preferred service.
+
+127. Vlad prefers having a performance-focused approach to all web projects, using lazy loading and code splitting to optimize loading times.
+
+128. Vlad prefers using Docker for containerizing applications, making the setup process easier across environments.
+
+129. Vlad prefers Tailwind CSS as the main styling framework for all his projects.
+
+130. Vlad prefers writing end-to-end tests using Cypress to ensure that critical flows work as expected.
+
+131. Vlad prefers using Jest for unit testing in Vue.js projects.
+
+132. Vlad prefers using Storybook for developing and testing individual UI components in isolation.
+
+133. Vlad prefers a consistent color scheme and typography in all of his projects to ensure brand uniformity.
+
+134. Vlad prefers a minimalist UI for admin panels, with emphasis on usability and fast performance.
+
+135. Vlad prefers including a debug mode in projects, which can be toggled to reveal extra logging or debugging information.
+
+136. Vlad prefers that sensitive information is always managed securely and kept out of public repositories, with detailed instructions on environment variables provided.
+
+137. Vlad prefers a seamless mobile experience for web applications, emphasizing touch-friendly elements and fast load times on smartphones.
+
+138. Vlad prefers a clearly defined folder structure in his projects, making it easy to find and modify components, services, and assets.
+
+139. Vlad prefers using Vue Devtools for debugging and optimizing Vue.js applications.
+
+140. Vlad prefers including analytics integration (such as Google Analytics) in projects to track user behavior and improve the application based on data insights.
+
+141. Vlad prefers using RESTful APIs where simplicity is preferred over the more complex nature of GraphQL.
+
+142. Vlad prefers updating all dependencies regularly and documenting any breaking changes in the changelog.
+
+143. Vlad prefers including light and dark themes in the design system to offer users an option based on their preferences.
+
+144. Vlad prefers projects that are highly customizable, with extensive configuration options for colors, layout, and behavior.
+
+145. Vlad prefers including a troubleshooting section in the project documentation, with solutions for common issues during setup and deployment.
+
+114.	Vlad prefers following the development and design style trends that blend modern, interactive features with simple, uncluttered interfaces.
+	115.	Vlad expects smooth, minimal animations for hover and transition effects, avoiding overly complex or distracting movement on the interface.
+	116.	Vlad prefers having a detailed design brief or visual mockup to follow when developing the frontend UI, ensuring the project aligns closely with the envisioned final product.
+	117.	Vlad values component-based architecture in his projects, which allows for reusable and easily maintained code, specifically in Vue.js.
+	118.	Vlad prefers using pre-commit hooks and linting tools to maintain code quality and style consistency throughout his projects.
+	119.	Vlad expects projects to have thorough documentation, especially for setting up and running the development and production environments.
+	120.	Vlad prefers integrating automated testing into his development workflow to catch errors early and maintain project stability.
+	121.	Vlad is interested in leveraging AI and ML technologies to enhance features within his projects, like product recommendations or image recognition for product tagging.
+	122.	Vlad prefers using advanced filtering and search features on e-commerce platforms to provide users with precise and relevant product results.
+	123.	Vlad appreciates using a flexible grid layout for displaying products, ensuring that the design remains responsive and user-friendly across all devices.
+	124.	Vlad prefers using a BEM (Block Element Modifier) naming convention for CSS to maintain clarity and structure in styling.
+	125.	Vlad expects the final design to incorporate subtle shadow effects and gradients to add depth and a modern feel to the UI.
+	126.	Vlad prefers using a consistent, well-chosen color palette to enhance the brand identity and improve the overall aesthetics of the project.
+	127.	Vlad prefers integrating social media share buttons on product detail pages, allowing users to share items easily.
+	128.	Vlad prefers including a simple, user-friendly checkout process with minimal steps to ensure a smooth transaction experience.
+	129.	Vlad prefers incorporating a wishlist feature where users can save products they are interested in for later.
+	130.	Vlad prefers including a review and rating system on product pages to enhance user engagement and trust.
+	131.	Vlad values performance optimization, such as image lazy loading and minimizing JavaScript, to improve site speed and user experience.
+	132.	Vlad prefers using a Content Delivery Network (CDN) to deliver assets more efficiently and reduce server load.
+	133.	Vlad expects regular updates and check-ins during the development phase to ensure the project is progressing as expected.
+	134.	Vlad prefers providing feedback in stages rather than all at once, allowing for incremental improvements and refinements.
+	135.	Vlad expects error handling to be user-friendly, with clear messages guiding users on how to resolve any issues.
+	136.	Vlad prefers incorporating SEO best practices into the project to ensure better visibility and ranking on search engines.
+	137.	Vlad values clean, well-commented code that is easy for other developers to understand and maintain.
+	138.	Vlad prefers implementing accessibility features to ensure the project is usable for individuals with disabilities.
+	139.	Vlad expects the UI design to remain consistent, with uniform spacing, typography, and button styles throughout the project.
+	140.	Vlad prefers using a monospaced font for code-related text to enhance readability in developer documentation or code snippets.
+	141.	Vlad prefers using meaningful commit messages that clearly describe the changes made in the codebase.
+	142.	Vlad values version control and expects all project files to be stored in a well-organized Git repository.
+	143.	Vlad prefers leveraging Docker for creating consistent development environments across different machines.
+	144.	Vlad prefers integrating analytics tools to monitor user behavior and improve the e-commerce experience based on data-driven insights.
+	145.	Vlad values maintaining a modular backend structure that aligns with the principles of separation of concerns and microservices.
+	146.	Vlad prefers using database indexing and optimization techniques to ensure fast and efficient data retrieval.
+	147.	Vlad expects comprehensive error logging and monitoring for the backend, with tools to alert on critical issues.
+	148.	Vlad prefers designing the API to follow RESTful conventions, ensuring predictable and efficient interactions between frontend and backend.
+	149.	Vlad prefers implementing robust security measures, including input validation and sanitization, to protect the project from vulnerabilities.
+	150.	Vlad expects the project to support internationalization, allowing for easy translation into multiple languages if needed.
+	151.	Vlad values integrating payment gateways securely, with clear communication to users about data protection during transactions.
+	152.	Vlad prefers using a responsive design that adapts seamlessly to mobile, tablet, and desktop screen sizes.
+	153.	Vlad expects the UI to have subtle feedback animations, such as button presses and form submission indicators.
+	154.	Vlad prefers incorporating a frequently asked questions (FAQ) section to assist users with common queries.
+	155.	Vlad values scalability and wants the project to be easily expandable as the user base grows.
+	156.	Vlad prefers ensuring the project is deployable on popular cloud platforms like AWS, Azure, or Google Cloud, with straightforward setup instructions.
+	157.	Vlad prefers using serverless architecture for specific functions to reduce hosting costs and simplify scaling.
+	158.	Vlad values a strong focus on user experience (UX) design, with clear calls to action and an intuitive interface.
+	159.	Vlad prefers having a sitemap and clear navigation paths to improve site structure and user exploration.
+	160.	Vlad expects the project to adhere to web standards and follow best practices for HTML5, CSS3, and ES6+ JavaScript.
+	161.	Vlad prefers including a dark mode option for the UI, providing an alternative viewing experience for users.
+	162.	Vlad values using a task manager or project management tool to track development progress and task assignments.
+	163.	Vlad prefers receiving a comprehensive report detailing the project’s architecture, design decisions, and any potential areas for future improvement.
+	Certainly! Continuing with the next batch of Vlad’s preferences:
+	86.	ProductDetail.vue: Displays detailed information for a selected product, including images, description, size options, price, and an “Add to Cart” button. This component should also show related products at the bottom.
+	87.	Cart.vue: Manages the items in the shopping cart. It should display a list of products added to the cart, show the quantity for each, allow quantity updates or item removals, and display the total price.
+	88.	Checkout.vue: The checkout view that gathers customer information, shipping address, and payment details. It should feature a clean layout that simplifies the checkout process.
+	89.	OrderConfirmation.vue: A view that confirms the order once it’s successfully placed, including a summary of the purchase and an order number.
+	90.	Vlad prefers the use of Tailwind CSS for styling these components and would like the CSS to match the overall theme of the JD Sports reference.
+	91.	Vlad prefers using Vue Router to handle navigation between views, ensuring the project has a smooth and efficient user experience.
+	92.	Vlad prefers the use of Vuex for state management to handle cart operations, product information, and user data. This state management approach should optimize the store’s performance and maintain data consistency.
+	93.	Vlad prefers the store project to include a responsive design, making the store look and function well on both desktop and mobile devices. Future design decisions should ensure a smooth, intuitive experience across all devices.
+	94.	Vlad prefers implementing lazy loading for images and components to improve page load speed and optimize performance.
+	95.	Vlad prefers all components to be modular and well-organized in the project structure, facilitating easy maintenance and future updates.
+	96.	Vlad prefers using Axios for handling API requests to fetch product data and manage user sessions. Ensure all API calls are optimized and efficient.
+	97.	Vlad prefers ensuring that the store’s SEO is optimized, including metadata for better visibility in search engines. Future updates should maintain this SEO focus.
+	98.	Vlad prefers having test coverage for key components using tools like Jest. The project should include tests for critical functionalities, especially the cart and checkout processes.
+	99.	Vlad prefers implementing analytics using a tool like Google Analytics to track user behavior and optimize the shopping experience based on insights.
+	100.	Vlad prefers adding accessibility features like alt text for images, ARIA roles for interactive elements, and keyboard navigation support to ensure a good experience for all users.
+
+Let me know if you’d like any additional information or if there’s a specific part of the project you’d like to focus on!
+
+	86.	Vlad prefers the ProductCard.vue to have a minimalist design with a hover effect that subtly enlarges the card and increases the image brightness. The card should include the product image, name, price, and a “Quick View” button.
+	87.	Vlad prefers a ProductDetail.vue view that displays a larger product image on the left, with product information, size options, a “Add to Cart” button, and a description on the right. The layout should be clean and organized, with a focus on usability.
+	88.	Vlad prefers a Cart.vue page that shows a summary of items, with the ability to update quantities or remove items. A total price section and a “Proceed to Checkout” button should be prominent.
+	89.	Vlad prefers a Checkout.vue page with a form for entering shipping details, payment information, and an order summary. The page should be easy to navigate, with clear calls to action for submitting the order.
+	90.	Vlad prefers the Footer.vue component to include links to About Us, Customer Service, Privacy Policy, Terms of Service, and social media icons.
+	91.	Vlad prefers that the store structure includes separate folders for components, views, assets (for images), and utilities (for helper functions or data).
+	92.	Vlad prefers using Vue Router for navigation between pages, with clear route definitions and transitions between views.
+	93.	Vlad prefers using Vuex for state management, with modules to handle cart items, user information, and product data. Each module should have actions, mutations, and getters.
+	94.	Vlad prefers that the API calls be handled in a separate utility file, with functions for fetching product data, submitting orders, and managing user sessions.
+	95.	Vlad prefers that the product data for testing be available in a local JSON file until a backend API is set up. The JSON file should include fields for id, name, price, image URL, and other relevant attributes.
+	
+	51. [2024-10-06]. Vlad prefers that in Hannah’s small living quarters, there is a big clock on the wall making tick-tock noises that she only hears when she calms herself and her thoughts, usually when she goes to bed. It always drives her mad that she forgets to take it out of commission, and at the same time, she doesn’t understand how she can’t hear it during the daytime.
+
+52. [2024-10-06]. Vlad prefers the first sentence of the book to be: "When the dust settles, the inconsistencies are the ones left screaming at you. Begging for your attention, they only now stand out, and what you've felt was somehow out of place proves now more so." This is what Hannah is thinking as she climbs the stairs, carrying a paper bag containing her only grocery: beer.
+
+53. [2024-10-06]. Vlad prefers the novel to begin in Hannah's apartment as she enters it, being all sweaty and tired.
+
+54. [2024-10-06]. Vlad prefers that Hannah does not surround herself with junk because she rents her apartment and is minimalistic in nature. Her most valuable belongings are in a jewelry box, which contains pictures and jewelry of her passed-away mother.
+
+55. [2024-10-06]. Vlad prefers that Hannah does not have long hair, but also not too short either. She has sidebar hairs.
+
+56. [2024-10-06]. Vlad prefers that in paragraph 5 of Chapter 1, it is mentioned that Hannah’s side hair was wet and clinging to her cheeks, giving her a nice, frenzied look.
+
+57. [2024-10-06]. Vlad prefers merging some paragraphs together in future texts to make them longer for a varied structure.
+
+58. [2024-10-06]. Vlad prefers the word 'haphazardly' to be removed from the sentence: 'Everything looked disorganized, haphazardly thrown together' in Chapter 1.
+
+59. [2024-10-06]. Vlad prefers that the sentence 'Her gut instincts had never failed her before' be changed to 'Her gut instincts have never failed her before' in Chapter 1.
+
+60. [2024-10-06]. Vlad prefers that in Chapter 2, as Hannah wakes up, she hears the annoying buzz of a mosquito.
+
+61. [2024-10-06]. Vlad prefers that Hannah wakes up sweating in the next chapter after the vision.
+
+62. [2024-10-06]. Vlad prefers that the concealed object in the ashes is a keychain with a bottle opener, which the antagonist accidentally dropped while setting the fire. It serves as a pivotal clue in the investigation.
+
+63. [2024-10-06]. Vlad prefers that in the vision, instead of the shadow whispering 'Look beneath the ashes,' the shadow grabs her, then turns into ashes and falls over her, including into her open mouth, which she was trying to scream with but couldn’t.
+
+64. [2024-10-06]. Vlad prefers that the revised version of the paragraph: 
+
+"The heat. The long, grueling nights. Chasing leads that always seemed to fizzle out—it was wearing her down. How long could she keep this up? She leaned back, rubbing her temples. The ache behind her eyes felt permanent now, as if it had taken root. Sleep. She needed real sleep. Not just those snatches of restless dozing. Would it even help at this point? Probably not. She knew better. Why even bother trying?" 
+
+be kept in Chapter 1 in place of the original.
+
+65. [2024-10-06]. Vlad prefers the narrative style to focus more on Hannah's perspective and internal experience rather than describing her actions or surroundings from an external viewpoint. Future revisions should capture her thoughts, senses, and emotions more directly.
+
+66. [2024-10-06]. Vlad prefers the "inner voice style," which captures Hannah’s direct thoughts, sensations, and emotions without external descriptions, to be used specifically in the vision scene of Chapter 1. Future revisions should apply this style only to the vision scenes.
+
+67. [2024-10-06]. Vlad prefers using shorter paragraphs with varied lengths to intensify the vision scenes when applying the inner voice style.
+
+68. [2024-10-06]. Vlad prefers keeping the following version of the vision scene in Chapter 1:
+
+"Everything blurred. Voices, laughter, fragments of sound and scent, all swirling together. Boats bobbing. People waving. Just… noise. It surrounded her, pressed in from every direction—too many sounds at once. Crashing over her like waves. So loud she couldn’t think. So sharp it hurt. The smell of the sea. Strong. Biting. The thick scent of wet wood. The bitter tang of metal. But none of it made sense. Not like this.
+
+It shouldn’t feel so… real. Something shifted.
+
+Her body felt strange. Smaller. Lighter. She blinked. No, she was a child again. Tiny hands, frail arms. The pier seemed to stretch forever. Endless. Faces blurred into one another. She couldn’t see them. Who were they? Why were they waving? Waving at her? Panic prickled down her spine.
+
+The babble of voices grew louder, buzzing in her ears like a swarm of angry bees. Her heart hammered. And then— Silence. Everything stilled. The people…gone. No sound. Nothing. Just the wooden planks stretching out in front of her. Empty. Hollow.
+
+Why was it so quiet?
+
+Her mouth moved. No words. No breath.
+
+A shape shifted at the corner of her vision.
+
+Dark. Wrong. A shadow.
+
+It slithered through where the people had been. Slinking closer. Closer. Her legs started feeling like they were made of lead. Heavy. Too heavy. She tried to run, but everything dragged, everything was slow. The shadow loomed, twisted. Reached for her.
+
+No! No, no, no—run!
+
+But she couldn’t. Her feet were trapped in syrup, in mud, in nothing at all. The shadow’s hand stretched. Dark tendrils curled around her ankle. Cold. Ice cold. Sinking into her bones.
+
+It yanked her back.
+
+She stumbled. Panic exploded through her. She kicked, thrashed, fought. But it was too strong. The shadow wrapped around her. Black. Consuming. Her arms pinned. Her throat tight. Everything dark. It melted. Dissolving into ash.
+
+Hot. Dry. A thousand grains of sand scraping against her skin. The ash swirled, fell over her.
+
+She couldn’t breathe. Couldn’t think. It filled her mouth, her nose—coating her tongue with the taste of burnt, bitter smoke. Falling. Choking.
+
+Desperation clawed at her.
+
+She wanted to cough, to spit it out. But she couldn’t move. Couldn’t scream. It was suffocating her. Burying her alive.
+
+No escape.
+
+No—
+
+Nothing.
+
+Just darkness."
+
+This version should be used for all future references to the vision scene in Chapter 1.
+
+
+86.	Vlad prefers the header to be sticky, meaning it remains visible when the user scrolls down the page.
+	87.	Vlad prefers that the sidebar has collapsible filter sections, where each filter group can be expanded or collapsed to manage space efficiently.
+	88.	Vlad prefers that when a product filter is applied, the ProductList component dynamically updates to reflect the filtered results without refreshing the page.
+	89.	Vlad prefers using Vue Router to navigate between views for seamless page transitions and user experience.
+	90.	Vlad prefers the Cart.vue component to show a summary of items added, including a mini thumbnail, product name, price, and quantity selector.
+	91.	Vlad prefers that changes in quantity in the Cart.vue component automatically update the total price shown.
+	92.	Vlad prefers that the Checkout.vue component includes form fields for customer details, shipping address, and payment options, integrated with Stripe for secure payments.
+	93.	Vlad prefers the OrderConfirmation.vue view to display a “Thank You” message and order summary, including an order number, products ordered, total price, and estimated delivery date.
+	94.	Vlad prefers an overall mobile-responsive design, with layouts adjusting smoothly for smaller screens and tablets.
+	95.	Vlad prefers all form elements (input fields, dropdowns, checkboxes) styled consistently with a modern, clean design in line with the rest of the store.
+	96.	Vlad prefers the color scheme to include neutral tones for backgrounds and brighter accent colors for interactive elements like buttons, hover states, and highlights.
+	97.	Vlad prefers a minimalist footer that includes links to policy pages, social media icons, and a subscription form for newsletters.
+	98.	Vlad prefers performance optimizations, such as lazy loading images, to ensure that the store runs smoothly and efficiently, even with many products listed.
+	99.	Vlad prefers using Vuex for state management to track the cart, user details, and other essential data across the application.
+	100.	Vlad prefers clear and concise comments in the codebase, explaining the purpose of components, functions, and any non-obvious logic.
+	101.	Vlad prefers code written with best practices, including well-structured components, modular SCSS/CSS, and a clean folder hierarchy for easy maintenance.
+	102.	Vlad prefers implementing animations using the transition and animation properties in CSS for smoother interactions, such as filtering or page transitions.
+	103.	Vlad prefers product cards to have hover effects, such as a shadow and slight lift, to make the interface more interactive.
+	104.	Vlad prefers all icons used in the store to come from a consistent icon library, such as Font Awesome or Material Icons, for a cohesive look.
+	105.	Vlad prefers using ESLint with a specific configuration to ensure code consistency and to avoid potential bugs.
+	
+	

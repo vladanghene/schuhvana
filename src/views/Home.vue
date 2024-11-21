@@ -1,75 +1,247 @@
 <template>
   <div class="home">
-    <!-- Hero Section -->
-    <HeroSection />
-    <section class="categories-section">
-      <div class="categories-container">
-        <div class="category">
-          <ProductCategory title="Discover Classics" :products="classics" />
+    <Hero />
+    <h1>Welcome to Schuhvana</h1>
+    
+    <div v-if="loading" class="loading">
+      Loading...
+    </div>
+    
+    <div v-else-if="error" class="error">
+      {{ error }}
+    </div>
+    
+    <div v-else class="content">
+      <!-- Discover Classics Section -->
+      <section v-if="classicProducts.length" class="section">
+        <h2>Discover Classics</h2>
+        <div class="product-grid">
+          <template v-for="product in classicProducts" :key="product.id">
+            <SingleProductCard 
+              v-if="product && product.id"
+              :product="product"
+            />
+          </template>
         </div>
-        <div class="category">
-          <ProductCategory title="Shop by Sport" :products="sports" />
+      </section>
+
+      <!-- Shop by Sport Section -->
+      <section v-if="sportCategories.length" class="section">
+        <h2 class="section-header">Shop by Sport</h2>
+        <div class="category-grid">
+          <template v-for="category in sportCategories" :key="category.id">
+            <router-link 
+              v-if="category && category.id"
+              :to="{ 
+                name: 'Category', 
+                params: { categoryname: category.id }
+              }"
+              class="category-card"
+            >
+              <img 
+                :src="getImageUrl(category.image)" 
+                :alt="category.name"
+                @error="handleImageError($event, category.image)"
+                loading="lazy"
+              >
+              <h3>{{ category.name }}</h3>
+              <p>{{ category.description }}</p>
+            </router-link>
+          </template>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </template>
 
 <script>
-import HeroSection from '../components/HeroSection.vue';
-import ProductCategory from '../components/ProductCategory.vue';
+import { mapGetters, mapActions } from 'vuex';
+import SingleProductCard from '@/components/SingleProductCard.vue';
+import Hero from '@/components/Hero.vue';
+import { defaultShoeImage } from '../assets/images/fallback';
 
 export default {
+  name: 'Home',
   components: {
-    HeroSection,
-    ProductCategory,
+    SingleProductCard,
+    Hero
   },
   data() {
     return {
-      classics: [
-        { id: 1, name: 'Air Max', image: 'https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_600,c_limit/800b58e3-b669-4dc3-a2d4-e68f5688d151/nike-just-do-it.jpg' },
-        { id: 2, name: 'Air Force 1', image: 'https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_600,c_limit/c61c8b70-ef28-4615-9b81-76c17467681c/nike-just-do-it.jpg' },
-        { id: 3, name: 'Dunk', image: 'https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_600,c_limit/64b7ce43-fe36-4a02-ae10-b8251a33d847/nike-just-do-it.jpg' }
-      ],
-      sports: [
-        { id: 1, name: 'Running', image: 'https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_600,c_limit/a3c971bc-bc0a-4c0c-8bdf-e807a3027e53/nike-just-do-it.jpg' },
-        { id: 2, name: 'Football', image: 'https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_600,c_limit/e4695209-3f23-4a05-a9f9-d0edde31b653/nike-just-do-it.jpg' },
-        { id: 3, name: 'Basketball', image: 'https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_600,c_limit/38ed4b8e-9cfc-4e66-9ddd-02a52314eed9/nike-just-do-it.jpg' }
-      ],
-      products: [
-        { id: 1, name: 'Air Max', image: 'https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_600,c_limit/800b58e3-b669-4dc3-a2d4-e68f5688d151/nike-just-do-it.jpg' },
-        { id: 2, name: 'Air Force 1', image: 'https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_600,c_limit/c61c8b70-ef28-4615-9b81-76c17467681c/nike-just-do-it.jpg' },
-        { id: 3, name: 'Dunk', image: 'https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_600,c_limit/64b7ce43-fe36-4a02-ae10-b8251a33d847/nike-just-do-it.jpg' }
-      ],
-    };
+      loading: true,
+      error: null,
+      fallbackImage: defaultShoeImage,
+      imageLoadErrors: new Set()
+    }
   },
+  computed: {
+    ...mapGetters('categories', ['allCategories', 'allSections', 'getSportCategories']),
+    ...mapGetters('products', ['allProducts']),
+    
+    classicProducts() {
+      return this.allProducts?.filter(p => p?.categories?.includes('discover-classics')) || [];
+    },
+    sportProducts() {
+      return this.allProducts?.filter(p => !p?.categories?.includes('discover-classics')) || [];
+    },
+    sportCategories() {
+      return this.getSportCategories || [];
+    }
+  },
+  methods: {
+    ...mapActions('products', ['initializeProducts']),
+    getImageUrl(filename) {
+      if (!filename || this.imageLoadErrors.has(filename)) {
+        return this.fallbackImage;
+      }
+      
+      try {
+        // Handle absolute URLs and data URLs
+        if (filename.startsWith('http') || filename.startsWith('data:')) {
+          return filename;
+        }
+
+        // Handle public assets (remove leading slash if present)
+        return filename.startsWith('/') ? filename.slice(1) : filename;
+      } catch (error) {
+        console.error('Error processing image URL:', error);
+        this.imageLoadErrors.add(filename);
+        return this.fallbackImage;
+      }
+    },
+    handleImageError(e, imagePath) {
+      console.warn(`Failed to load image: ${imagePath}`);
+      this.imageLoadErrors.add(imagePath);
+      if (e.target) {
+        e.target.src = this.fallbackImage;
+      }
+    }
+  },
+  async mounted() {
+    try {
+      await this.initializeProducts();
+      this.loading = false;
+    } catch (error) {
+      console.error('Failed to initialize products:', error);
+      this.error = 'Failed to load products. Please try again later.';
+    } finally {
+      this.loading = false;
+    }
+  }
 };
 </script>
 
 <style scoped>
 .home {
-  padding: 2rem;
-}
-.categories-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 50px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-.categories-container {
-  display: flex;
-  flex-direction: column; /* Stack categories vertically */
-  gap: 2rem; /* Add space between categories */
-}
-
-.category {
+.loading, .error {
   text-align: center;
+  padding: 20px;
+  margin: 20px 0;
 }
 
-.category h2 {
-  font-size: 24px;
+.error {
+  color: red;
+}
+
+.content {
+  width: 100%;
+}
+
+.section {
+  margin-bottom: 40px;
+  width: 100%;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  width: 100%;
+  padding: 20px 0;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  width: 100%;
+  padding: 20px 0;
+}
+
+.category-card {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.category-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.category-card h3 {
+  margin: 16px 16px 8px;
+  font-size: 1.2em;
   color: #333;
-  margin-bottom: 20px;
+}
+
+.category-card p {
+  margin: 0 16px 16px;
+  color: #666;
+  flex-grow: 1;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 32px;
+  font-size: 2.4em;
+}
+
+h2 {
+  margin-bottom: 24px;
+  font-size: 1.8em;
+  color: #333;
+  padding: 0 8px;
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  h1 {
+    font-size: 2em;
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    font-size: 1.6em;
+    margin-bottom: 20px;
+  }
 }
 </style>
