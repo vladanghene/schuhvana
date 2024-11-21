@@ -97,7 +97,14 @@ export default {
       this.selectedSize = size;
     },
     addToCart() {
-      // Logic for adding the product to cart
+		console.log('Product added to cart: ',this.product);
+			// update cart
+	  this.$store.commit('cart/addToCart', {
+		product: this.product,
+		size: this.selectedSize,
+		price: this.price,
+		name: this.name
+	  });	
     },
     toggleDetails() {
       this.showDetails = !this.showDetails;

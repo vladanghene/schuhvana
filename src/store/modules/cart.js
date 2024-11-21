@@ -5,12 +5,14 @@ export default {
       totalPrice: 0,
     },
     mutations: {
-      addToCart(state, product) {
+		  addToCart(state, product) {
         const item = state.items.find((item) => item.id === product.id);
+				console.log("State: ", item);
         if (item) {
           item.quantity += 1;
         } else {
-          state.items.push({ ...product, quantity: 1 });
+          state.items.push({ ...product, quantity: 1
+					});
         }
         state.totalPrice += product.price;
       },

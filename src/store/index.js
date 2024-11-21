@@ -7,8 +7,13 @@ import reviews from './modules/reviews';
 import search from './modules/search';
 
 export default createStore({
+		state: {
+				cart: []
+		},
+
+  actions: {},
   modules: {
-    cart,
+    cart, //register the cart module
     products,
     user,
     wishlist,
@@ -16,3 +21,4 @@ export default createStore({
     search,
   },
 });
+
