@@ -17,9 +17,13 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
   name: 'Breadcrumbs',
   computed: {
+    ...mapGetters('products', ['getProductById']),
+    ...mapGetters('categories', ['getCategoryById']),
     isHomePage() {
       return this.$route.name === 'Home' || this.$route.path === '/';
     },
@@ -33,27 +37,34 @@ export default {
       }
 
       // Handle category pages
-      if (name === 'CategoryPage' && params.categoryname) {
+      if (name === 'Category' && params.categoryname) {
+        const category = this.getCategoryById(params.categoryname);
         breadcrumbs.push({
-          name: this.capitalizeFirst(params.categoryname),
-          path: `/${params.categoryname}`
+          name: category ? category.name : this.capitalizeFirst(params.categoryname),
+          path: `/category/${params.categoryname}`
         });
       }
 
       // Handle product pages
       if (name === 'ProductPage' && params.id) {
-        // If we have the product data in Vuex store, we can get the category
-        const product = this.$store.getters['products/getProductById'](params.id);
-        if (product && product.category) {
+        const product = this.getProductById(Number(params.id));
+        if (product) {
+          // Add category breadcrumb if product has categories
+          if (product.categories && product.categories.length > 0) {
+            const category = this.getCategoryById(product.categories[0]);
+            if (category) {
+              breadcrumbs.push({
+                name: category.name,
+                path: `/category/${category.id}`
+              });
+            }
+          }
+          // Add product name
           breadcrumbs.push({
-            name: this.capitalizeFirst(product.category),
-            path: `/${product.category}`
+            name: product.name,
+            path: `/product/${params.id}`
           });
         }
-        breadcrumbs.push({
-          name: product ? product.name : `Product ${params.id}`,
-          path: `/product/${params.id}`
-        });
       }
 
       // Handle cart page
