@@ -26,6 +26,16 @@
           @error="handleImageError($event, currentImage)"
           @click="openModal" 
         />
+        
+        <!-- Size selection -->
+        <div class="size-selection">
+          <h4>Choose Size</h4>
+          <SizeSelector
+            :product="product"
+            v-model:selectedSize="selectedSize"
+            selectedScale="US"
+          />
+        </div>
       </div>
 
       <!-- Image Modal -->
@@ -42,16 +52,6 @@
       <div v-if="product" class="product-info">
         <h1>{{ product.name }}</h1>
         <p class="price">${{ product.price }}</p>
-
-        <!-- Size selection -->
-        <div class="size-selection">
-          <h4>Choose Size</h4>
-          <SizeSelector
-            :product="product"
-            v-model:selectedSize="selectedSize"
-            selectedScale="US"
-          />
-        </div>
 
         <!-- Add to cart and wishlist buttons -->
         <div class="action-buttons">
@@ -244,20 +244,31 @@ export default {
 }
 
 .main-product-image {
-  width: 100%;
-  max-width: 500px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
 }
 
 .main-product-image img {
   width: 100%;
   height: auto;
-  border-radius: 12px;
-  cursor: zoom-in;
-  transition: transform 0.2s;
+  object-fit: cover;
+  cursor: pointer;
 }
 
-.main-product-image img:hover {
-  transform: scale(1.02);
+.size-selection {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.size-selection h4 {
+  color: #374151;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 .product-info {
@@ -275,15 +286,6 @@ export default {
   color: #007bff;
   font-weight: 600;
   margin-bottom: 2rem;
-}
-
-.size-selection {
-  margin-bottom: 2rem;
-}
-
-.size-selection h4 {
-  margin-bottom: 1rem;
-  color: #2c3e50;
 }
 
 .action-buttons {

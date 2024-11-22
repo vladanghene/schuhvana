@@ -1,17 +1,5 @@
 <template>
   <div class="size-selector">
-    <div class="size-scale-selector">
-      <button 
-        v-for="scale in availableScales" 
-        :key="scale"
-        :class="{ active: currentScale === scale }"
-        @click="setScale(scale)"
-        class="scale-button"
-      >
-        {{ scale }}
-      </button>
-    </div>
-
     <div class="sizes-grid">
       <button
         v-for="size in availableSizes"
@@ -20,13 +8,19 @@
           active: isSelected(size)
         }"
         @click="selectSize(size)"
+        @mouseenter="startConversions(size)"
+        @mouseleave="stopConversions(size)"
         class="size-button"
       >
-        {{ size }}
-        <div v-if="isSelected(size)" class="size-conversions">
-          <div v-for="(value, scale) in getConversions(size)" :key="scale" class="conversion">
-            {{ scale }}: {{ value }}
-          </div>
+        <div class="size-content">
+          <Transition name="fade" mode="out-in">
+            <span :key="currentScale + size" v-if="isSelected(size) || hoveredSize === size" class="size-text">
+              {{ currentScale }}: {{ getConversionValue(size) }}
+            </span>
+            <span v-else class="size-text">
+              {{ size }}
+            </span>
+          </Transition>
         </div>
       </button>
     </div>
@@ -43,22 +37,26 @@
             <table>
               <thead>
                 <tr>
-                  <th v-for="scale in availableScales" :key="scale">{{ scale }}</th>
+                  <th>US</th>
+                  <th>UK</th>
+                  <th>EU</th>
+                  <th>CM</th>
+                  <th>IN</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="size in availableSizes" :key="size">
                   <td>{{ size }}</td>
-                  <td v-for="scale in availableScales.filter(s => s !== 'US')" :key="scale">
-                    {{ getConversions(size)[scale] }}
-                  </td>
+                  <td>{{ getConversions(size).UK }}</td>
+                  <td>{{ getConversions(size).EU }}</td>
+                  <td>{{ getConversions(size).CM }}</td>
+                  <td>{{ getConversions(size).IN }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div class="measurement-tips">
             <h4>How to Measure</h4>
-            <p>For the most accurate fit, measure your feet:</p>
             <ol>
               <li>Measure in the afternoon (feet swell during the day)</li>
               <li>Wear socks you plan to wear with the shoes</li>
@@ -83,94 +81,177 @@ export default {
     selectedSize: {
       type: [Number, String],
       default: null
-    },
-    selectedScale: {
-      type: String,
-      default: 'US'
     }
   },
   data() {
     return {
-      currentScale: this.selectedScale,
-      showConversions: true,
-      showSizeGuide: false
+      showSizeGuide: false,
+      currentConversionIndex: 0,
+      conversionInterval: null,
+      currentScale: 'US',
+      hoveredSize: null,
+      scaleOrder: ['US', 'UK', 'EU', 'CM', 'IN'],
+      selectedInterval: null,
+      debug: false // For debugging purposes
     };
   },
   computed: {
-    availableScales() {
-      const sizes = this.$store.getters['products/getProductSizes'](this.product);
-      return Object.keys(sizes);
-    },
     availableSizes() {
       const sizes = this.$store.getters['products/getProductSizes'](this.product);
-      return sizes[this.currentScale || 'US'];  // Default to US if no scale selected
+      return sizes.US || [];
+    }
+  },
+  watch: {
+    // Debug watcher to track state changes
+    hoveredSize(newVal, oldVal) {
+      if (this.debug) console.log('hoveredSize changed:', oldVal, '->', newVal);
+    },
+    currentScale(newVal, oldVal) {
+      if (this.debug) console.log('currentScale changed:', oldVal, '->', newVal);
+    },
+    selectedSize: {
+      immediate: true,
+      handler(newSize) {
+        if (newSize) {
+          this.startSelectedCycle(newSize);
+        } else {
+          this.clearSelectedInterval();
+        }
+      }
     }
   },
   methods: {
-    setScale(scale) {
-      // Convert the current size to the new scale
-      if (this.selectedSize) {
-        let newSize;
-        const sizeConversions = this.$store.getters['products/getProductSizeConversions'](this.product);
-        
-        if (this.currentScale === 'US') {
-          // Converting from US to another scale
-          const usSize = `US-${this.selectedSize}`;
-          const conversion = sizeConversions[usSize];
-          newSize = conversion ? conversion[scale] : null;
-        } else if (scale === 'US') {
-          // Converting to US
-          // Find the US size that matches current size in current scale
-          const usSize = Object.keys(sizeConversions).find(key => {
-            const conversion = sizeConversions[key];
-            return conversion[this.currentScale] === this.selectedSize.toString();
-          });
-          newSize = usSize ? parseFloat(usSize.replace('US-', '')) : null;
-        } else {
-          // Converting between non-US scales
-          // First convert to US, then to target scale
-          const usSize = Object.keys(sizeConversions).find(key => {
-            const conversion = sizeConversions[key];
-            return conversion[this.currentScale] === this.selectedSize.toString();
-          });
-          if (usSize) {
-            const conversion = sizeConversions[usSize];
-            newSize = conversion[scale];
-          }
-        }
-
-        if (newSize !== null) {
-          // Convert string sizes to numbers where appropriate
-          if (['US', 'UK', 'EU', 'CM', 'IN'].includes(scale)) {
-            newSize = parseFloat(newSize);
-          }
-          this.$emit('update:selectedSize', newSize);
-        }
+    startConversions(size) {
+      if (this.debug) console.log('startConversions called for size:', size);
+      
+      // Don't start hover cycle if size is selected
+      if (this.isSelected(size)) return;
+      
+      // Don't start if already cycling for this size
+      if (this.hoveredSize === size && this.conversionInterval) {
+        if (this.debug) console.log('Already cycling for size:', size);
+        return;
       }
       
-      this.currentScale = scale;
+      // Clear any existing hover interval
+      this.clearConversionInterval();
+      
+      // Set initial state for hover
+      this.hoveredSize = size;
+      this.currentConversionIndex = 0;
+      this.currentScale = this.scaleOrder[0];
+      
+      if (this.debug) console.log('Starting hover interval for size:', size);
+      
+      // Start new hover interval
+      this.conversionInterval = setInterval(() => {
+        if (!this.hoveredSize || this.isSelected(this.hoveredSize)) {
+          if (this.debug) console.log('Clearing hover interval');
+          this.clearConversionInterval();
+          return;
+        }
+        
+        this.currentConversionIndex = (this.currentConversionIndex + 1) % this.scaleOrder.length;
+        this.currentScale = this.scaleOrder[this.currentConversionIndex];
+        
+        if (this.debug) console.log('Hover interval tick:', this.currentScale);
+      }, 2000);
+    },
+    stopConversions(size) {
+      if (this.debug) console.log('stopConversions called for size:', size);
+      
+      // Don't stop if this size is selected
+      if (this.isSelected(size)) return;
+      
+      // Only stop if this is the currently hovered size
+      if (this.hoveredSize === size) {
+        if (this.debug) console.log('Stopping conversions for size:', size);
+        this.clearConversionInterval();
+        this.resetConversionState();
+      }
+    },
+    startSelectedCycle(size) {
+      if (this.debug) console.log('Starting selected cycle for size:', size);
+      
+      // Clear any existing intervals
+      this.clearSelectedInterval();
+      this.clearConversionInterval();
+      
+      // Set initial state
+      this.currentConversionIndex = 0;
+      this.currentScale = this.scaleOrder[0];
+      
+      // Start new interval for selected size
+      this.selectedInterval = setInterval(() => {
+        this.currentConversionIndex = (this.currentConversionIndex + 1) % this.scaleOrder.length;
+        this.currentScale = this.scaleOrder[this.currentConversionIndex];
+        
+        if (this.debug) console.log('Selected interval tick:', this.currentScale);
+      }, 2000);
     },
     selectSize(size) {
+      if (this.debug) console.log('selectSize called for size:', size);
       this.$emit('update:selectedSize', size);
     },
+    clearConversionInterval() {
+      if (this.conversionInterval) {
+        if (this.debug) console.log('Clearing hover interval');
+        clearInterval(this.conversionInterval);
+        this.conversionInterval = null;
+      }
+    },
+    clearSelectedInterval() {
+      if (this.selectedInterval) {
+        if (this.debug) console.log('Clearing selected interval');
+        clearInterval(this.selectedInterval);
+        this.selectedInterval = null;
+      }
+    },
+    resetConversionState() {
+      if (this.debug) console.log('Resetting conversion state');
+      this.hoveredSize = null;
+      this.currentScale = 'US';
+      this.currentConversionIndex = 0;
+    },
     isSelected(size) {
-      return this.selectedSize === size;
+      return String(this.selectedSize) === String(size);
+    },
+    getConversionValue(size) {
+      const sizeType = this.product.sizeType || 'men-regular';
+      const sizeKey = `US-${String(size)}`;
+      const conversions = this.$store.state.products.standardSizes[sizeType]?.sizeConversions[sizeKey];
+      
+      if (!conversions) return size;
+      
+      switch (this.currentScale) {
+        case 'US':
+          return size;
+        case 'UK':
+        case 'EU':
+        case 'CM':
+        case 'IN':
+          return conversions[this.currentScale] || size;
+        default:
+          return size;
+      }
     },
     getConversions(size) {
-      const sizeConversions = this.$store.getters['products/getProductSizeConversions'](this.product);
-      const usSize = `US-${size}`;
-      const conversion = sizeConversions[usSize];
-      if (!conversion) return {};
+      const sizeType = this.product.sizeType || 'men-regular';
+      const sizeKey = `US-${String(size)}`;
+      const conversions = this.$store.state.products.standardSizes[sizeType]?.sizeConversions[sizeKey] || {};
       
-      // Remove current scale from conversions and filter out null values
-      return Object.fromEntries(
-        Object.entries(conversion)
-          .filter(([key, value]) => value != null && key !== this.currentScale)
-      );
+      return {
+        US: String(size),
+        ...conversions
+      };
     },
     toggleSizeGuide() {
       this.showSizeGuide = !this.showSizeGuide;
     }
+  },
+  beforeUnmount() {
+    this.clearConversionInterval();
+    this.clearSelectedInterval();
   }
 };
 </script>
@@ -180,110 +261,100 @@ export default {
   margin: 1rem 0;
 }
 
-.size-scale-selector {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.scale-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
-  background: white;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.scale-button.active {
-  background: #2c3e50;
-  color: white;
-  border-color: #2c3e50;
-}
-
 .sizes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  grid-template-columns: repeat(8, 1fr);
   gap: 0.5rem;
   margin-bottom: 1rem;
+  justify-items: center;
 }
 
 .size-button {
   position: relative;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
+  padding: 0.4rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
   background: white;
-  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease-in-out;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 4.5em;
 }
 
-.size-button:hover {
-  border-color: #2c3e50;
+.size-button:hover:not(.active) {
+  border-color: #3b82f6;
+  color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .size-button.active {
-  background: #2c3e50;
+  background: #2563eb;
   color: white;
-  border-color: #2c3e50;
+  border-color: #2563eb;
+  font-weight: 500;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
 }
 
-.size-conversions {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 10;
+.size-button.active:hover {
+  background: #1d4ed8;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.4);
+}
+
+.size-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  line-height: 1;
+}
+
+.size-text {
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  letter-spacing: -0.01em;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.size-button:hover .size-conversions {
-  display: block;
-  opacity: 1;
-}
-
-.size-conversions::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  width: 10px;
-  height: 10px;
-  background: white;
-  border-right: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-}
-
-.conversion {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0.25rem 0;
 }
 
 .size-guide-button {
   background: none;
   border: none;
-  color: #007bff;
+  color: #2563eb;
   text-decoration: underline;
   cursor: pointer;
   padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.size-guide-button:hover {
+  color: #3b82f6;
 }
 
 .size-guide-modal {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -294,9 +365,9 @@ export default {
 .size-guide-content {
   background: white;
   padding: 2rem;
-  border-radius: 8px;
-  max-width: 90vw;
-  max-height: 90vh;
+  border-radius: 0.5rem;
+  max-width: 90%;
+  max-height: 90%;
   overflow-y: auto;
   position: relative;
 }
@@ -305,52 +376,92 @@ export default {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: none;
   border: none;
+  background: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #666;
+  color: #64748b;
+  padding: 0.5rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #2563eb;
 }
 
 .size-chart {
-  margin: 1rem 0;
-  overflow-x: auto;
+  margin-top: 1rem;
 }
 
 .size-chart table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 500px;
+  margin-top: 1rem;
 }
 
 .size-chart th,
 .size-chart td {
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   text-align: center;
-  border: 1px solid #ddd;
+  border: 1px solid #e2e8f0;
 }
 
 .size-chart th {
-  background: #f8f9fa;
-  font-weight: 600;
+  background-color: #2563eb;
+  color: white;
+  font-weight: 500;
+}
+
+.size-chart tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.size-chart tr:hover {
+  background-color: #eff6ff;
 }
 
 .measurement-tips {
   margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid #ddd;
+  padding: 1rem;
+  background: #eff6ff;
+  border-radius: 0.375rem;
+  border: 1px solid #bfdbfe;
 }
 
 .measurement-tips h4 {
-  margin-bottom: 1rem;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
 }
 
-.measurement-tips ol {
-  padding-left: 1.5rem;
+.measurement-tips ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 
 .measurement-tips li {
   margin: 0.5rem 0;
-  color: #666;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.measurement-tips li::before {
+  content: "•";
+  color: #2563eb;
+  position: absolute;
+  left: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .sizes-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .sizes-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 </style>

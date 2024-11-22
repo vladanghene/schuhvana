@@ -11,18 +11,8 @@
     </div>
 
     <div class="products-section">
-      <div class="filters">
-        <select v-model="selectedSizeType" class="size-filter">
-          <option value="">All Size Types</option>
-          <option value="men-regular">Men's Regular</option>
-          <option value="men-small">Men's Small</option>
-          <option value="women-regular">Women's Regular</option>
-          <option value="women-small">Women's Small</option>
-        </select>
-      </div>
-
       <template v-if="categoryname === 'all'">
-        <div v-for="category in filteredGroupedProducts" :key="category.id" class="category-section">
+        <div v-for="category in groupedProducts" :key="category.id" class="category-section">
           <h2 class="category-title">{{ category.name }}</h2>
           <div class="product-grid">
             <SingleProductCard 
@@ -35,7 +25,7 @@
       </template>
       <div v-else class="product-grid">
         <SingleProductCard 
-          v-for="product in filteredProducts" 
+          v-for="product in products" 
           :key="product.id" 
           :product="product"
         />
@@ -63,72 +53,42 @@ export default {
       required: true
     }
   },
-  setup(props) {
-    const selectedSizeType = ref('');
-
-    const filterBySize = (products) => {
-      if (!selectedSizeType.value) return products;
-      return products.filter(product => 
-        (product.sizeType || 'men-regular') === selectedSizeType.value
-      );
-    };
-
-    const category = computed(() => {
-      if (!props.categoryname) return null;
-      return props.getCategoryById(props.categoryname);
-    });
-
-    const categoryImage = computed(() => {
-      if (!category.value?.image) return '';
-      return getImageUrl(category.value.image);
-    });
-
-    const products = computed(() => {
-      if (!category.value) return [];
-      if (props.categoryname === 'all') {
-        return props.allProducts || [];
+  computed: {
+    ...mapGetters('products', ['allProducts']),
+    ...mapGetters('categories', ['getCategoryById', 'allCategories']),
+    
+    category() {
+      if (!this.categoryname) return null;
+      return this.getCategoryById(this.categoryname);
+    },
+    categoryImage() {
+      if (!this.category?.image) return '';
+      return getImageUrl(this.category.image);
+    },
+    products() {
+      if (!this.category) return [];
+      if (this.categoryname === 'all') {
+        return this.allProducts || [];
       }
-      return props.allProducts?.filter(p => 
-        p?.categories?.includes(category.value.id)
+      return this.allProducts?.filter(p => 
+        p?.categories?.includes(this.category.id)
       ) || [];
-    });
-
-    const groupedProducts = computed(() => {
-      if (props.categoryname !== 'all') return [];
+    },
+    groupedProducts() {
+      if (this.categoryname !== 'all') return [];
       
       // Get all categories except 'all'
-      const categories = props.allCategories.filter(cat => cat.id !== 'all');
+      const categories = this.allCategories.filter(cat => cat.id !== 'all');
       
       // Group products by category
       return categories.map(cat => ({
         id: cat.id,
         name: cat.name,
-        products: props.allProducts.filter(product => 
+        products: this.allProducts.filter(product => 
           product.categories?.includes(cat.id)
         )
       })).filter(cat => cat.products.length > 0);
-    });
-
-    const filteredProducts = computed(() => {
-      return filterBySize(products.value);
-    });
-
-    const filteredGroupedProducts = computed(() => {
-      return groupedProducts.value.map(category => ({
-        ...category,
-        products: filterBySize(category.products)
-      })).filter(category => category.products.length > 0);
-    });
-
-    return {
-      category,
-      categoryImage,
-      products,
-      groupedProducts,
-      selectedSizeType,
-      filteredProducts,
-      filteredGroupedProducts
-    };
+    }
   }
 };
 </script>
@@ -210,26 +170,6 @@ export default {
   width: 40px;
   height: 2px;
   background-color: #ddd;
-}
-
-.filters {
-  margin: 1rem;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.size-filter {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.size-filter:focus {
-  outline: none;
-  border-color: #4CAF50;
 }
 
 @media (max-width: 768px) {

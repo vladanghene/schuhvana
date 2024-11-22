@@ -88,6 +88,15 @@ export default {
           item.quantity = quantity;
         }
       },
+      changeCartItemSize(state, { id, oldSize, newSize }) {
+        const itemIndex = state.items.findIndex(
+          (item) => item.id === id && item.selectedSize === oldSize
+        );
+        
+        if (itemIndex !== -1) {
+          state.items[itemIndex].selectedSize = newSize;
+        }
+      },
       // Add new mutation to remove expired items
       removeExpiredItems(state) {
         const now = Date.now();
@@ -126,6 +135,31 @@ export default {
       },
       updateCartItemQuantity({ commit }, { id, selectedSize, quantity }) {
         commit('updateCartItemQuantity', { id, selectedSize, quantity });
+      },
+      async changeCartItemSize({ commit, state }, { id, oldSize, newSize }) {
+        // Find the item to be changed
+        const itemIndex = state.items.findIndex(
+          (item) => item.id === id && item.selectedSize === oldSize
+        );
+        
+        if (itemIndex !== -1) {
+          const item = state.items[itemIndex];
+          
+          // Remove the old size directly from state
+          state.totalPrice = Number((state.totalPrice - item.price * item.quantity).toFixed(2));
+          state.items.splice(itemIndex, 1);
+          
+          // Wait for animation
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // Add the new size
+          const newItem = { 
+            ...item, 
+            selectedSize: newSize,
+            quantity: 1  // Reset quantity for new size
+          };
+          commit('addToCart', newItem);
+        }
       },
       checkExpiredItems({ commit }) {
         commit('removeExpiredItems');

@@ -12,171 +12,174 @@
         </div>
 
         <!-- Main Cart Section -->
-        <div v-if="cartItems.length > 0" class="cart-content">
-          <!-- Cart Items -->
-          <div class="cart-main">
-            <div class="cart-items">
-              <TransitionGroup name="cart-item" tag="div">
-                <div v-for="item in cartItems" :key="`${item.id}-${item.selectedSize}`" class="cart-item">
-                  <div class="item-image">
-                    <img :src="getImageUrl(item.image)" :alt="item.name" />
-                  </div>
-                  <div class="item-details">
-                    <div class="item-info">
-                      <h3>{{ item.name }}</h3>
-                      <p class="size">
-                        Size: {{ item.selectedSize }} US
-                        <span v-if="item.sizeConversions" class="size-conversions">
-                          (UK {{ item.sizeConversions.UK }} / EU {{ item.sizeConversions.EU }})
-                        </span>
-                      </p>
-                      <p class="price">${{ item.price }}</p>
+        <div class="cart-content">
+          <Transition name="empty-cart" mode="out-in">
+            <div v-if="cartItems.length > 0">
+              <div class="cart-items">
+                <TransitionGroup name="cart-items" tag="div" class="cart-items">
+                  <div v-for="item in cartItems" 
+                    :key="`${item.id}-${item.selectedSize}`" 
+                    class="cart-item">
+                    <div class="item-image">
+                      <img :src="getImageUrl(item.image)" :alt="item.name" />
                     </div>
-                    <div class="item-actions">
-                      <div class="size-selector">
-                        <select 
-                          v-model="selectedSizes[item.id]" 
-                          @change="handleAddSize(item)"
-                          :disabled="getAvailableSizes(item.id).every(size => isSizeInCart(item.id, size))"
-                        >
-                          <option value="" disabled>Select another size</option>
-                          <option 
-                            v-for="size in getAvailableSizes(item.id)" 
-                            :key="size"
-                            :value="size"
-                            :disabled="isSizeInCart(item.id, size)"
+                    <div class="item-details">
+                      <div class="item-info">
+                        <h3>{{ item.name }}</h3>
+                        <div class="size">
+                          Size: {{ item.selectedSize }} US
+                          <div v-if="item.sizeConversions" class="size-conversions">
+                            (UK {{ item.sizeConversions.UK }} / EU {{ item.sizeConversions.EU }})
+                          </div>
+                          <div class="item-size">
+                            <select 
+                              v-model="selectedSizesChange[item.id]"
+                              @change="handleSizeChange(item)"
+                              class="change-size-select"
+                            >
+                              <option value="">Select a different size</option>
+                              <option 
+                                v-for="size in getAvailableSizes(item.id)"
+                                :key="size"
+                                :value="size"
+                                :disabled="isSizeInCart(item.id, size)"
+                              >
+                                US {{ size }}
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                        <p class="price">${{ item.price }}</p>
+                      </div>
+                      <div class="item-actions">
+                        <div class="size-selector">
+                          <select 
+                            v-model="selectedSizes[item.id]" 
+                            @change="handleAddSize(item)"
+                            :disabled="getAvailableSizes(item.id).every(size => isSizeInCart(item.id, size))"
                           >
-                            Size US {{ size }}
-                          </option>
-                        </select>
+                            <option value="" disabled>Add a new size to cart</option>
+                            <option 
+                              v-for="size in getAvailableSizes(item.id)" 
+                              :key="size"
+                              :value="size"
+                              :disabled="isSizeInCart(item.id, size)"
+                            >
+                              Size US {{ size }}
+                            </option>
+                          </select>
+                          <button 
+                            v-if="selectedSizes[item.id]" 
+                            @click="handleAddSize(item)"
+                            :disabled="isSizeInCart(item.id, selectedSizes[item.id])"
+                            class="add-size-btn"
+                          >
+                            Add to Cart
+                          </button>
+                        </div>
+                        <div class="quantity-controls">
+                          <button 
+                            class="quantity-btn" 
+                            @click="updateQuantity(item.id, item.selectedSize, item.quantity - 1)" 
+                            :disabled="item.quantity <= 1"
+                          >−</button>
+                          <span class="quantity">{{ item.quantity }}</span>
+                          <button 
+                            class="quantity-btn" 
+                            @click="updateQuantity(item.id, item.selectedSize, item.quantity + 1)"
+                          >+</button>
+                        </div>
                         <button 
-                          v-if="selectedSizes[item.id]" 
-                          @click="handleAddSize(item)"
-                          :disabled="isSizeInCart(item.id, selectedSizes[item.id])"
-                          class="add-size-btn"
+                          @click="softDeleteFromCart({ id: item.id, selectedSize: item.selectedSize })" 
+                          class="remove-btn"
                         >
-                          Add to Cart
+                          <span class="remove-icon">×</span>
+                          Remove
                         </button>
                       </div>
-                      <div class="quantity-controls">
-                        <button 
-                          class="quantity-btn" 
-                          @click="updateQuantity(item.id, item.selectedSize, item.quantity - 1)" 
-                          :disabled="item.quantity <= 1"
-                        >−</button>
-                        <span class="quantity">{{ item.quantity }}</span>
-                        <button 
-                          class="quantity-btn" 
-                          @click="updateQuantity(item.id, item.selectedSize, item.quantity + 1)"
-                        >+</button>
-                      </div>
-                      <button 
-                        @click="softDeleteFromCart({ id: item.id, selectedSize: item.selectedSize })" 
-                        class="remove-btn"
-                      >
-                        <span class="remove-icon">×</span>
-                        Remove
-                      </button>
                     </div>
                   </div>
+                </TransitionGroup>
+              </div>
+              <div class="cart-summary">
+                <h2>Order Summary</h2>
+                <div class="summary-details">
+                  <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>${{ cartTotal.toFixed(2) }}</span>
+                  </div>
+                  <div class="summary-row">
+                    <span>Shipping</span>
+                    <span>Free</span>
+                  </div>
+                  <div class="summary-row total">
+                    <span>Total</span>
+                    <span>${{ cartTotal.toFixed(2) }}</span>
+                  </div>
                 </div>
-              </TransitionGroup>
+                <router-link 
+                  to="/checkout" 
+                  class="checkout-button" 
+                  :class="{ 'disabled': cartItems.length === 0 }" 
+                  :disabled="cartItems.length === 0"
+                >
+                  Proceed to Checkout
+                </router-link>
+                <router-link to="/" class="continue-shopping">
+                  Continue Shopping
+                </router-link>
+              </div>
             </div>
-          </div>
+            <div v-else class="empty-cart">
+              <div class="empty-cart-content">
+                <svg class="cart-icon" viewBox="0 0 24 24" width="64" height="64">
+                  <path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 3h1l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H6.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H4.21l-.94-2H1v2zm16 15c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+                <h2>Your cart is empty</h2>
+                <p>Looks like you haven't added anything to your cart yet.</p>
+                <router-link to="/" class="start-shopping-btn">Start Shopping</router-link>
+              </div>
+            </div>
+          </Transition>
+        </div>
 
-          <!-- Cart Summary -->
-          <div class="cart-summary">
-            <h2>Order Summary</h2>
-            <div class="summary-details">
-              <div class="summary-row">
-                <span>Subtotal</span>
-                <span>${{ cartTotal.toFixed(2) }}</span>
+        <!-- Recently Removed Items -->
+        <div v-if="removedItems.length > 0" class="removed-section">
+          <h3>Recently Removed</h3>
+          <div class="removed-items">
+            <div v-for="item in removedItems" :key="`${item.id}-${item.selectedSize}-removed`" class="removed-item">
+              <div class="removed-item-content">
+                <img :src="getImageUrl(item.image)" :alt="item.name" class="removed-thumb">
+                <div class="removed-details">
+                  <h4>{{ item.name }}</h4>
+                  <p>Size: US {{ item.selectedSize }}</p>
+                  <p>${{ item.price }}</p>
+                </div>
+                <div class="time-remaining">{{ getTimeRemaining(item) }}</div>
               </div>
-              <div class="summary-row">
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
-              <div class="summary-row total">
-                <span>Total</span>
-                <span>${{ cartTotal.toFixed(2) }}</span>
-              </div>
+              <button @click="handleRestore($event, item)" class="restore-btn">
+                Restore to Cart
+              </button>
             </div>
-            <router-link 
-              to="/checkout" 
-              class="checkout-button" 
-              :class="{ 'disabled': cartItems.length === 0 }" 
-              :disabled="cartItems.length === 0"
-            >
-              Proceed to Checkout
-            </router-link>
-            <router-link to="/" class="continue-shopping">
-              Continue Shopping
-            </router-link>
           </div>
         </div>
 
-        <!-- Empty Cart Message -->
-        <div v-else class="empty-cart">
-          <div class="empty-cart-content">
-            <svg class="cart-icon" viewBox="0 0 24 24" width="64" height="64">
-              <path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 3h1l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H6.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H4.21l-.94-2H1v2zm16 15c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
-            </svg>
-            <h2>Your cart is empty</h2>
-            <p>Looks like you haven't added anything to your cart yet.</p>
-            <router-link to="/" class="start-shopping-btn">Start Shopping</router-link>
-          </div>
-        </div>
+        <!-- Confetti Animation -->
+        <Confetti 
+          v-if="showingConfetti"
+          :is-active="true"
+          :mouse-x="mousePosition.x"
+          :mouse-y="mousePosition.y"
+          type="restore"
+        />
       </div>
-
-      <!-- Recently Removed Items -->
-      <div v-if="removedItems.length > 0" class="removed-items-section">
-        <h2>Recently Removed</h2>
-        <TransitionGroup name="removed-item" tag="div" class="removed-items">
-          <div 
-            v-for="item in removedItems" 
-            :key="`removed-${item.id}-${item.selectedSize}`" 
-            class="removed-item" 
-            :class="{ 'fade-out': item.isRestoring }"
-          >
-            <div class="item-image">
-              <img :src="getImageUrl(item.image)" :alt="item.name" />
-            </div>
-            <div class="item-details">
-              <div class="item-info">
-                <h3>{{ item.name }}</h3>
-                <p class="size">
-                  Size: {{ item.selectedSize }} US
-                  <span v-if="item.sizeConversions" class="size-conversions">
-                    (UK {{ item.sizeConversions.UK }} / EU {{ item.sizeConversions.EU }})
-                  </span>
-                </p>
-                <p class="price">${{ item.price }}</p>
-              </div>
-              <div class="restore-container">
-                <button @click="handleRestore($event, item)" class="restore-btn">
-                  Add Back to Cart
-                </button>
-              </div>
-            </div>
-          </div>
-        </TransitionGroup>
-      </div>
-
-      <!-- Confetti Animation -->
-      <Confetti 
-        v-if="showingConfetti"
-        :is-active="true"
-        :mouse-x="mousePosition.x"
-        :mouse-y="mousePosition.y"
-        type="restore"
-      />
     </div>
   </div>
 </template>
 
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import Confetti from '@/components/Confetti.vue';
 import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
@@ -191,6 +194,20 @@ export default {
     ...mapGetters('cart', ['cartItems', 'cartTotal', 'removedItems']),
     ...mapGetters('products', ['getProductById']),
     
+    getTimeRemaining() {
+      return (item) => {
+        if (!item || !item.removedAt) return '0m 0s';
+        
+        const now = Date.now();
+        const EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+        const timeLeft = Math.max(0, (item.removedAt + EXPIRY_TIME) - now);
+        
+        const minutes = Math.floor(timeLeft / 60000);
+        const seconds = Math.floor((timeLeft % 60000) / 1000);
+        return `${minutes}m ${seconds}s`;
+      };
+    },
+
     getAvailableSizes() {
       return (productId) => {
         const product = this.getProductById(productId);
@@ -202,17 +219,18 @@ export default {
   },
   data() {
     return {
-      fallbackImage: DEFAULT_SHOE_IMAGE,
       selectedSizes: {},
+      selectedSizesChange: {},
       showingConfetti: false,
       mousePosition: { x: 0, y: 0 },
       checkExpiredInterval: null
     };
   },
   created() {
-    // Initialize selectedSizes for each cart item
+    // Initialize selectedSizes and selectedSizesChange for each cart item
     this.cartItems.forEach(item => {
       this.selectedSizes[item.id] = '';
+      this.selectedSizesChange[item.id] = '';
     });
   },
   mounted() {
@@ -227,6 +245,27 @@ export default {
       clearInterval(this.checkExpiredInterval);
     }
   },
+  watch: {
+    cartItems: {
+      handler(newItems) {
+        // Clear any existing timer
+        if (this.emptyMessageTimer) {
+          clearTimeout(this.emptyMessageTimer);
+        }
+        
+        if (newItems.length === 0) {
+          // Set timer to show empty message after 2 seconds
+          this.showEmptyMessage = false;
+          setTimeout(() => {
+            this.showEmptyMessage = true;
+          }, 2000);
+        } else {
+          this.showEmptyMessage = false;
+        }
+      },
+      immediate: true
+    }
+  },
   methods: {
     ...mapActions('cart', [
       'softDeleteFromCart', 
@@ -235,7 +274,8 @@ export default {
       'clearCart',
       'updateCartItemQuantity',
       'addToCart',
-      'checkExpiredItems'
+      'checkExpiredItems',
+      'changeCartItemSize'
     ]),
     ...mapGetters('products', ['getProductById']),
     getImageUrl,
@@ -264,6 +304,10 @@ export default {
         y: event.clientY
       };
       this.showingConfetti = true;
+      
+      // Initialize select boxes for the restored item
+      this.selectedSizes[updatedItem.id] = '';
+      this.selectedSizesChange[updatedItem.id] = '';
       
       // Restore item with updated conversions
       this.restoreToCart({ 
@@ -308,6 +352,29 @@ export default {
       // Reset selection
       this.selectedSizes[item.id] = '';
     },
+    async handleSizeChange(item) {
+      const newSize = this.selectedSizesChange[item.id];
+      if (!newSize) return; // Skip if no size selected
+      
+      if (!this.isSizeInCart(item.id, newSize)) {
+        // Get fresh size conversions from store
+        const product = this.getProductById(item.id);
+        if (!product) return;
+        
+        const sizeConversions = this.$store.getters['products/getProductSizeConversions'](product);
+        const usSize = `US-${newSize}`;
+        const conversions = sizeConversions[usSize];
+
+        await this.changeCartItemSize({ 
+          id: item.id, 
+          oldSize: item.selectedSize, 
+          newSize,
+          sizeConversions: conversions
+        });
+        
+        this.selectedSizesChange[item.id] = ''; // Reset selection
+      }
+    },
     isSizeInCart(id, size) {
       return this.cartItems.some(item => item.id === id && item.selectedSize === size);
     }
@@ -325,6 +392,117 @@ export default {
 .cart-container {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.cart-content {
+  position: relative;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-content > div {
+  display: flex;
+  gap: 2rem;
+  flex: 1;
+}
+
+@media (max-width: 1024px) {
+  .cart-content > div {
+    flex-direction: column;
+  }
+
+  .cart-summary {
+    width: 100%;
+    position: relative;
+    top: 0;
+  }
+
+  .summary-details {
+    max-width: 500px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .checkout-button,
+  .continue-shopping {
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .cart-content {
+    gap: 1rem;
+  }
+
+  .cart-content > div {
+    gap: 1rem;
+  }
+}
+
+.cart-items {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cart-summary {
+  width: 380px;
+  flex-shrink: 0;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 2rem;
+  align-self: flex-start;
+  height: fit-content;
+}
+
+.cart-summary h2 {
+  margin: 0 0 1.5rem 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.summary-details {
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  color: #6c757d;
+  background: #f8f9fa;
+  border-radius: 8px;
+  grid-column: span 2;
+}
+
+.summary-row.total {
+  border-top: none;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  background: #e9ecef;
+}
+
+.summary-row span:first-child {
+  font-weight: 500;
+}
+
+.summary-row span:last-child {
+  text-align: right;
 }
 
 .cart-header {
@@ -345,318 +523,311 @@ export default {
   font-size: 1.1rem;
 }
 
-.cart-content {
-  display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 2rem;
-}
-
-@media (max-width: 1024px) {
-  .cart-content {
-    grid-template-columns: 1fr;
-  }
-}
-
 .cart-main {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-.cart-items {
+.cart-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 3rem;
+  padding: 2.5rem 3.5rem;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.cart-item:hover {
+  border-color: #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.cart-item .item-image {
+  width: 200px;
+  height: 200px;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-.cart-item {
-  display: flex;
-  padding: 1.5rem;
-  border-bottom: 1px solid #eee;
-}
-
-.cart-item:last-child {
-  border-bottom: none;
-}
-
-.item-image {
-  width: 120px;
-  height: 120px;
-  flex-shrink: 0;
-}
-
-.item-image img {
+.cart-item .item-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
 }
 
 .item-details {
-  flex-grow: 1;
-  margin-left: 1.5rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
 }
 
 .item-info h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.2rem;
-  color: #2c3e50;
+  color: #111827;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
 }
 
-.size {
-  color: #666;
-  margin: 0.5rem 0;
-  font-size: 0.9rem;
+.item-info .size {
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  white-space: nowrap;
+  flex-wrap: nowrap;
 }
 
 .size-conversions {
-  color: #888;
-  font-size: 0.85rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  white-space: nowrap;
 }
 
-.price {
+.item-info .price {
+  color: #111827;
   font-weight: 600;
-  color: #2c3e50;
-  font-size: 1.1rem;
-  margin: 0.5rem 0;
+  font-size: 1.25rem;
 }
 
 .item-actions {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: auto;
 }
 
 .size-selector {
-  margin: 1rem 0;
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  gap: 0.75rem;
+  min-width: 200px;
+  margin-top: 0.7rem;
 }
 
 .size-selector select {
-  padding: 0.5rem 1rem;
-  padding-right: 2.5rem;  /* Increased right padding to prevent text overlap with arrow */
-  border: 1px solid #ddd;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
-  font-size: 0.9rem;
-  color: #333;
-  background-color: #fff;
+  color: #374151;
+  font-size: 0.875rem;
+  background-color: white;
   cursor: pointer;
-  min-width: 150px;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 0.7rem center;
-  background-size: 1em;
+  width: 160px;
 }
 
-.size-selector select:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-}
-
-.size-selector select:disabled {
-  background-color: #f5f5f5;
-  cursor: not-allowed;
-  color: #999;
-}
-
-.size-selector .add-size-btn {
+.add-size-btn {
   padding: 0.5rem 1rem;
-  background: #007bff;
+  background: #16a34a;
   color: white;
   border: none;
   border-radius: 6px;
-  cursor: pointer;
+  font-size: 0.875rem;
   font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition: background-color 0.2s;
   white-space: nowrap;
-}
-
-.size-selector .add-size-btn:hover:not(:disabled) {
-  background: #0056b3;
-  transform: translateY(-1px);
-}
-
-.size-selector .add-size-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.size-selector option {
-  padding: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.size-selector option:disabled {
-  color: #999;
-  background: #f5f5f5;
 }
 
 .quantity-controls {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: #f8f9fa;
+  gap: 0.75rem;
+  background: #f9fafb;
   padding: 0.25rem;
   border-radius: 6px;
-}
-
-.quantity-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: white;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #2c3e50;
-  transition: all 0.2s;
-}
-
-.quantity-btn:hover:not(:disabled) {
-  background: #e9ecef;
-}
-
-.quantity-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.quantity {
-  min-width: 30px;
-  text-align: center;
-  font-weight: 500;
+  border: 1px solid #e5e7eb;
+  margin-left: auto;
 }
 
 .remove-btn {
-  background: none;
-  border: none;
-  color: #dc3545;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  font-size: 0.9rem;
-  transition: color 0.2s;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  color: #dc2626;
+  background: transparent;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .remove-btn:hover {
-  color: #c82333;
+  background: #dc2626;
+  color: white;
+}
+
+.remove-btn:active {
+  transform: scale(0.98);
 }
 
 .remove-icon {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
-.removed-items-section {
+.change-size-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 180px;
+  height: 38px;
+  appearance: none;
+  display: flex;
+  align-items: center;
+}
+
+.change-size-select option {
+  color: #374151;
+  padding: 0.5rem;
+  font-weight: 500;
+}
+
+.change-size-select:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.change-size-select:focus {
+  outline: none;
+  border-color: #d1d5db;
+  box-shadow: 0 0 0 2px rgba(209, 213, 219, 0.2);
+}
+
+.change-size-select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.item-size {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 200px;
+  margin-top: 0.7rem;
+}
+
+.removed-section {
   margin-top: 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 2rem;
+  padding: 1.5rem;
+  border: 2px dashed rgba(156, 163, 175, 0.5);
+  border-radius: 8px;
 }
 
-.removed-items-section h2 {
-  margin: 0 0 1.5rem 0;
-  color: #2c3e50;
-  font-size: 1.5rem;
+.removed-section h3 {
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .removed-items {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .removed-item {
-  display: flex;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  background: #f8f9fa;
+  position: relative;
+  background: white;
   border-radius: 8px;
-  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-}
-
-.removed-item.fade-out {
-  opacity: 0;
-  transform: translateX(-20px);
-  pointer-events: none;
-}
-
-.restore-container {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  overflow: hidden;
+  transition: all 0.2s ease;
+  border: 1px solid #f3f4f6;
+  padding: 1.5rem;
   display: flex;
   align-items: center;
 }
 
-.restore-btn {
-  padding: 0.75rem 1.5rem;
-  background: #28a745;
+.removed-item:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border-color: #e5e7eb;
+}
+
+.removed-item-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.removed-thumb {
+  width: 100px;
+  height: 100px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.removed-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.removed-item .restore-btn {
+  padding: 0.5rem 1rem;
+  background: #16a34a;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
   font-weight: 500;
-  transition: background-color 0.2s;
 }
 
-.restore-btn:hover {
-  background: #218838;
+.removed-item .restore-btn:hover {
+  background: #22c55e;
+  transform: translateY(-1px);
 }
 
-.removed-item.fade-out * {
-  pointer-events: none;
+.removed-item .restore-btn:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.removed-item:not(.fade-out) .restore-btn {
-  pointer-events: auto;
-}
-
-.cart-summary {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  position: sticky;
-  top: 2rem;
-}
-
-.cart-summary h2 {
-  margin: 0 0 1.5rem 0;
-  color: #2c3e50;
-  font-size: 1.5rem;
-}
-
-.summary-details {
-  margin-bottom: 1.5rem;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 0;
-  color: #6c757d;
-}
-
-.summary-row.total {
-  border-top: 1px solid #eee;
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 1.1rem;
+.time-remaining {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #4b5563;
+  font-weight: 500;
 }
 
 .checkout-button {
@@ -666,9 +837,9 @@ export default {
   background: #007bff;
   color: white;
   text-align: center;
+  font-weight: 500;
   border-radius: 6px;
   text-decoration: none;
-  font-weight: 500;
   transition: background-color 0.2s;
   margin-bottom: 1rem;
 }
@@ -686,8 +857,8 @@ export default {
 .continue-shopping {
   display: block;
   text-align: center;
-  color: #6c757d;
   text-decoration: none;
+  color: #6c757d;
   font-size: 0.9rem;
 }
 
@@ -696,113 +867,172 @@ export default {
 }
 
 .empty-cart {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   padding: 4rem 2rem;
+  background: #f8f9fa;
 }
 
 .empty-cart-content {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
   max-width: 400px;
-  margin: 0 auto;
+  margin: auto;
 }
 
-.cart-icon {
-  color: #6c757d;
-  margin-bottom: 1.5rem;
+.empty-cart-content .cart-icon {
+  color: #e2e8f0;
+  filter: drop-shadow(0px 2px 2px rgba(255, 255, 255, 0.8)) 
+          drop-shadow(0px -2px 2px rgba(0, 0, 0, 0.1));
 }
 
-.empty-cart h2 {
-  margin: 0 0 0.5rem 0;
-  color: #2c3e50;
+.empty-cart-content h2 {
+  color: #94a3b8;
+  margin: 0;
+  font-size: 1.8rem;
+  text-shadow: 0px 2px 2px rgba(255, 255, 255, 0.8),
+               0px -2px 2px rgba(0, 0, 0, 0.1);
 }
 
-.empty-cart p {
-  color: #6c757d;
-  margin-bottom: 2rem;
+.empty-cart-content p {
+  color: #94a3b8;
+  margin: 0;
+  font-size: 1.1rem;
+  text-shadow: 0px 2px 2px rgba(255, 255, 255, 0.8),
+               0px -2px 2px rgba(0, 0, 0, 0.1);
 }
 
 .start-shopping-btn {
   display: inline-block;
-  padding: 1rem 2rem;
-  background: #007bff;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
   font-weight: 500;
-  transition: background-color 0.2s;
+  text-decoration: none;
+  color: #94a3b8;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: inset 0px -2px 2px rgba(255, 255, 255, 0.8),
+              inset 0px 2px 2px rgba(0, 0, 0, 0.1),
+              0px 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .start-shopping-btn:hover {
-  background: #0056b3;
+  background: #e2e8f0;
+  transform: translateY(1px);
+}
+
+.start-shopping-btn:active {
+  background: #cbd5e1;
+  box-shadow: inset 0px 2px 2px rgba(0, 0, 0, 0.1),
+              inset 0px -2px 2px rgba(255, 255, 255, 0.8);
 }
 
 /* Cart Items Animation */
-.cart-item-enter-active,
-.cart-item-leave-active {
+.cart-items-move,
+.cart-items-enter-active,
+.cart-items-leave-active {
   transition: all 0.5s ease;
 }
 
-.cart-item-enter-from,
-.cart-item-leave-to {
+.cart-items-enter-from,
+.cart-items-leave-to {
   opacity: 0;
   transform: translateX(-30px);
+}
+
+.cart-items-leave-active {
+  position: absolute;
 }
 
 /* Recently Removed Items Animation */
 .removed-item-enter-active,
 .removed-item-leave-active {
-  transition: all 0.5s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .removed-item-enter-from {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(10px);
 }
 
 .removed-item-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(10px);
 }
 
+/* Empty Cart Transition */
+.empty-cart-enter-active {
+  transition: all 3s ease;
+}
+
+.empty-cart-leave-active {
+  transition: all 0.5s ease;
+}
+
+.empty-cart-enter-from,
+.empty-cart-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.empty-cart-enter-to,
+.empty-cart-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .cart-page {
     padding: 1rem;
   }
 
   .cart-item {
-    flex-direction: column;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+    padding: 1rem;
   }
 
   .item-image {
-    width: 100%;
-    height: 200px;
-    margin-bottom: 1rem;
-  }
-
-  .item-details {
-    margin-left: 0;
-    flex-direction: column;
-    gap: 1rem;
+    width: 100px;
+    height: 100px;
   }
 
   .item-actions {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
-  .removed-item {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+  .size-selector {
+    width: 100%;
   }
-  
-  .restore-container {
+
+  .size-selector select {
+    width: 100%;
+  }
+
+  .quantity-controls {
     width: 100%;
     justify-content: center;
-    margin-top: 1rem;
+  }
+
+  .remove-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .time-remaining {
+    top: 1.25rem;
+    right: 1.25rem;
   }
 }
 </style>
