@@ -44,14 +44,10 @@ export default {
       if (!url || imageLoadError.value) {
         return DEFAULT_SHOE_IMAGE;
       }
+      return getImageUrl(url);
+    };
 
-      try {
-        return getProductImageUrl(url);
-      } catch (error) {
-        console.error('Error processing image URL:', error);
-        imageLoadError.value = true;
-        return DEFAULT_SHOE_IMAGE;
-      }
+
     };
 
     const initializeComponent = () => {
