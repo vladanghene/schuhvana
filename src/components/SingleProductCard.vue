@@ -85,7 +85,7 @@ export default {
   overflow: hidden;
   transition: all 0.3s ease;
   background: white;
-  height: 100%;
+  width: 280px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -100,7 +100,7 @@ export default {
 }
 
 .product-content {
-  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -110,7 +110,6 @@ export default {
   color: inherit;
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .product-image {
@@ -148,9 +147,14 @@ export default {
   font-size: 1rem;
   font-weight: 600;
   text-align: center;
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
+  .product-card {
+    width: 160px;
+  }
+
   .product-name {
     padding: 0.35rem 0.75rem;
   }
