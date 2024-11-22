@@ -45,9 +45,16 @@
 
         <!-- Add to cart and wishlist buttons -->
         <div class="action-buttons">
-          <button class="add-to-cart" @click="handleAddToCart" :disabled="!selectedSize">
-            {{ selectedSize ? 'Add to Cart' : 'Select a Size' }}
-          </button>
+          <div class="add-to-cart-wrapper">
+            <button class="add-to-cart" @click="handleAddToCart($event)" :disabled="!selectedSize">
+              {{ selectedSize ? 'Add to Cart' : 'Select a Size' }}
+            </button>
+            <Confetti 
+              :is-active="showConfetti" 
+              :mouse-x="mousePosition.x"
+              :mouse-y="mousePosition.y"
+            />
+          </div>
           <button class="add-to-wishlist">Add to Wishlist</button>
         </div>
 
@@ -74,12 +81,14 @@
 <script>
 import { mapActions } from 'vuex';
 import Breadcrumbs from './Breadcrumbs.vue';
+import Confetti from './Confetti.vue';
 import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
 
 export default {
   name: 'ProductDetail',
   components: {
-    Breadcrumbs
+    Breadcrumbs,
+    Confetti
   },
   props: {
     product: {
@@ -92,7 +101,9 @@ export default {
       currentImage: null,
       selectedSize: null,
       showDetails: false,
-      imageLoadErrors: new Set()
+      imageLoadErrors: new Set(),
+      showConfetti: false,
+      mousePosition: { x: 0, y: 0 }
     };
   },
   methods: {
@@ -116,7 +127,15 @@ export default {
     selectSize(size) {
       this.selectedSize = size;
     },
-    handleAddToCart() {
+    handleAddToCart(event) {
+      this.mousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+      this.showConfetti = true;
+      setTimeout(() => {
+        this.showConfetti = false;
+      }, 3000); // Increased timeout to match new animation duration
       if (!this.selectedSize) return;
       
       this.addItemToCart({
@@ -257,8 +276,13 @@ export default {
   margin-bottom: 2rem;
 }
 
-.add-to-cart {
+.add-to-cart-wrapper {
+  position: relative;
   flex: 2;
+}
+
+.add-to-cart {
+  width: 100%;
   padding: 1rem;
   background: #007bff;
   color: white;
