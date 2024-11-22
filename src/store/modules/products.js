@@ -20,17 +20,15 @@ export default {
             id: 1, 
             name: 'Nike Air Max 90', 
             categories: ['discover-classics', 'running'],
-            image: 'products/nike/air-max-90/airmax-2.jpg',
+            image: 'products/nike/air-max-90/airmax-1.jpg',
             images: [
               'products/nike/air-max-90/airmax-1.jpg',
               'products/nike/air-max-90/airmax-2.jpg',
               'products/nike/air-max-90/airmax-3.jpg',
               'products/nike/air-max-90/airmax-4.jpg',
               'products/nike/air-max-90/airmax-5.jpg',
-              'products/nike/air-max-90/airmax-6.jpg',
               'products/nike/air-max-90/airmax-7.jpg',
               'products/nike/air-max-90/airmax-8.jpg',
-              'products/nike/air-max-90/airmax-9.jpg',
               'products/nike/air-max-90/airmax-10.jpg'
             ],
             price: 129.99,
