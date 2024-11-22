@@ -101,6 +101,17 @@ export default {
       addToCart({ commit }, product) {
         commit('addToCart', product);
       },
+      addItemToCart({ commit, rootGetters }, { id, selectedSize, quantity }) {
+        // Get product from products store
+        const product = rootGetters['products/getProductById'](id);
+        if (product) {
+          commit('addToCart', {
+            ...product,
+            selectedSize,
+            quantity
+          });
+        }
+      },
       softDeleteFromCart({ commit }, { id, selectedSize }) {
         commit('softDeleteFromCart', { id, selectedSize });
       },
@@ -122,12 +133,22 @@ export default {
       },
     },
     getters: {
-      cartItems: (state) => state.items,
-      cartTotal: (state) => Math.max(0, state.totalPrice),
-      removedItems: (state) => state.removedItems.filter(item => {
+      cartItems(state) {
+        return state.items;
+      },
+      cartTotal(state) {
+        return state.totalPrice;
+      },
+      removedItems(state) {
         const now = Date.now();
         const EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
-        return now - item.removedAt < EXPIRY_TIME;
-      }),
-    },
+        return state.removedItems.filter(item => {
+          return now - item.removedAt < EXPIRY_TIME;
+        });
+      },
+      // Add new getter to check if a specific size is in cart
+      isSizeInCart: (state) => (productId, size) => {
+        return state.items.some(item => item.id === productId && item.selectedSize === size);
+      }
+    }
   };

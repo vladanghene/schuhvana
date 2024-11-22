@@ -32,6 +32,31 @@
                     <p class="price">${{ item.price }}</p>
                   </div>
                   <div class="item-actions">
+                    <div class="size-selector">
+                      <select 
+                        v-model="selectedSizes[item.id]" 
+                        @change="handleAddSize(item)"
+                        :disabled="getAvailableSizes(item.id).every(size => isSizeInCart(item.id, size))"
+                      >
+                        <option value="" disabled>Select another size</option>
+                        <option 
+                          v-for="size in getAvailableSizes(item.id)" 
+                          :key="size"
+                          :value="size"
+                          :disabled="isSizeInCart(item.id, size)"
+                        >
+                          Size US {{ size }}
+                        </option>
+                      </select>
+                      <button 
+                        v-if="selectedSizes[item.id]" 
+                        @click="handleAddSize(item)"
+                        :disabled="isSizeInCart(item.id, selectedSizes[item.id])"
+                        class="add-size-btn"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
                     <div class="quantity-controls">
                       <button 
                         class="quantity-btn" 
@@ -162,19 +187,29 @@ export default {
   },
   computed: {
     ...mapGetters('cart', ['cartItems', 'cartTotal', 'removedItems']),
+    ...mapGetters('products', ['getProductById']),
+    
+    getAvailableSizes() {
+      return (productId) => {
+        const product = this.getProductById(productId);
+        return product ? product.sizes.US : [];
+      };
+    }
   },
   data() {
     return {
       fallbackImage: DEFAULT_SHOE_IMAGE,
       mousePosition: { x: 0, y: 0 },
-      checkInterval: null
+      checkInterval: null,
+      selectedSizes: {},
+      showingConfetti: false
     };
   },
-  setup() {
-    const showingConfetti = ref(false);
-    return {
-      showingConfetti
-    };
+  created() {
+    // Initialize selectedSizes for each cart item
+    this.cartItems.forEach(item => {
+      this.selectedSizes[item.id] = '';
+    });
   },
   mounted() {
     // Start periodic check for expired items
@@ -227,6 +262,22 @@ export default {
         });
       }, 300);
     },
+    isSizeInCart(id, size) {
+      return this.cartItems.some(item => item.id === id && item.selectedSize === size);
+    },
+    handleAddSize(item) {
+      if (this.selectedSizes[item.id] && !this.isSizeInCart(item.id, this.selectedSizes[item.id])) {
+        const product = this.getProductById(item.id);
+        if (product) {
+          this.$store.dispatch('cart/addItemToCart', {
+            id: item.id,
+            selectedSize: this.selectedSizes[item.id],
+            quantity: 1
+          });
+          this.selectedSizes[item.id] = '';
+        }
+      }
+    }
   }
 };
 </script>
@@ -346,6 +397,75 @@ export default {
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-end;
+}
+
+.size-selector {
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.size-selector select {
+  padding: 0.5rem 1rem;
+  padding-right: 2.5rem;  /* Increased right padding to prevent text overlap with arrow */
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #333;
+  background-color: #fff;
+  cursor: pointer;
+  min-width: 150px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1em;
+}
+
+.size-selector select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.size-selector select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.size-selector .add-size-btn {
+  padding: 0.5rem 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.size-selector .add-size-btn:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.size-selector .add-size-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.size-selector option {
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.size-selector option:disabled {
+  color: #999;
+  background: #f5f5f5;
 }
 
 .quantity-controls {
