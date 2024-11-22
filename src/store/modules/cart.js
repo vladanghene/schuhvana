@@ -7,35 +7,68 @@ export default {
     },
     mutations: {
       addToCart(state, product) {
-        const item = state.items.find((item) => item.id === product.id);
+        // Find item with same ID AND size
+        const item = state.items.find(
+          (item) => item.id === product.id && item.selectedSize === product.selectedSize
+        );
+        
         if (item) {
+          // If exact same product and size exists, increment quantity
           item.quantity += 1;
         } else {
+          // If not found, add as new item
           state.items.push({ ...product, quantity: 1 });
         }
+        
         state.totalPrice = Number((state.totalPrice + product.price).toFixed(2));
       },
-      softDeleteFromCart(state, productId) {
-        const itemIndex = state.items.findIndex((item) => item.id === productId);
+      softDeleteFromCart(state, { id, selectedSize }) {
+        const itemIndex = state.items.findIndex(
+          (item) => item.id === id && item.selectedSize === selectedSize
+        );
+        
         if (itemIndex !== -1) {
-          const removedItem = state.items[itemIndex];
+          const removedItem = { 
+            ...state.items[itemIndex],
+            removedAt: Date.now() // Add timestamp when item is removed
+          };
           state.totalPrice = Number((state.totalPrice - removedItem.price * removedItem.quantity).toFixed(2));
           // Ensure totalPrice never goes below 0
           state.totalPrice = Math.max(0, state.totalPrice);
           state.items.splice(itemIndex, 1);
-          state.removedItems.push(removedItem);
+          
+          // Check if this item was previously removed
+          const existingRemovedIndex = state.removedItems.findIndex(
+            item => item.id === id && item.selectedSize === selectedSize
+          );
+          
+          if (existingRemovedIndex !== -1) {
+            // If it exists, update its timestamp
+            state.removedItems[existingRemovedIndex].removedAt = removedItem.removedAt;
+          } else {
+            // If it's new, add it to removedItems
+            state.removedItems.push(removedItem);
+          }
         }
       },
-      restoreToCart(state, productId) {
-        const removedItemIndex = state.removedItems.findIndex((item) => item.id === productId);
+      restoreToCart(state, { id, selectedSize }) {
+        const removedItemIndex = state.removedItems.findIndex(
+          (item) => item.id === id && item.selectedSize === selectedSize
+        );
+        
         if (removedItemIndex !== -1) {
-          const restoredItem = state.removedItems[removedItemIndex];
+          const restoredItem = { ...state.removedItems[removedItemIndex] };
+          delete restoredItem.removedAt; // Remove the timestamp
+          delete restoredItem.isRestoring; // Remove the restoring flag
           state.items.push(restoredItem);
           state.totalPrice = Number((state.totalPrice + restoredItem.price * restoredItem.quantity).toFixed(2));
         }
       },
-      removeFromRemoved(state, productId) {
-        const removedItemIndex = state.removedItems.findIndex((item) => item.id === productId);
+      removeFromRemoved(state, { id, selectedSize }) {
+        const removedItemIndex = state.removedItems.findIndex(
+          (item) => item.id === id && item.selectedSize === selectedSize
+        );
+        
         if (removedItemIndex !== -1) {
           state.removedItems.splice(removedItemIndex, 1);
         }
@@ -45,37 +78,56 @@ export default {
         state.removedItems = [];
         state.totalPrice = 0;
       },
-      updateCartItemQuantity(state, { id, quantity }) {
-        const item = state.items.find((item) => item.id === id);
+      updateCartItemQuantity(state, { id, selectedSize, quantity }) {
+        const item = state.items.find(
+          (item) => item.id === id && item.selectedSize === selectedSize
+        );
+        
         if (item) {
           state.totalPrice = Number((state.totalPrice + (quantity - item.quantity) * item.price).toFixed(2));
           item.quantity = quantity;
         }
+      },
+      // Add new mutation to remove expired items
+      removeExpiredItems(state) {
+        const now = Date.now();
+        const EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+        state.removedItems = state.removedItems.filter(item => {
+          return now - item.removedAt < EXPIRY_TIME;
+        });
       },
     },
     actions: {
       addToCart({ commit }, product) {
         commit('addToCart', product);
       },
-      softDeleteFromCart({ commit }, productId) {
-        commit('softDeleteFromCart', productId);
+      softDeleteFromCart({ commit }, { id, selectedSize }) {
+        commit('softDeleteFromCart', { id, selectedSize });
       },
-      restoreToCart({ commit }, productId) {
-        commit('restoreToCart', productId);
+      restoreToCart({ commit }, { id, selectedSize }) {
+        commit('restoreToCart', { id, selectedSize });
       },
-      removeFromRemoved({ commit }, productId) {
-        commit('removeFromRemoved', productId);
+      removeFromRemoved({ commit }, { id, selectedSize }) {
+        commit('removeFromRemoved', { id, selectedSize });
       },
       clearCart({ commit }) {
         commit('clearCart');
       },
-      updateCartItemQuantity({ commit }, payload) {
-        commit('updateCartItemQuantity', payload);
+      updateCartItemQuantity({ commit }, { id, selectedSize, quantity }) {
+        commit('updateCartItemQuantity', { id, selectedSize, quantity });
+      },
+      // Add new action to check and remove expired items
+      checkExpiredItems({ commit }) {
+        commit('removeExpiredItems');
       },
     },
     getters: {
       cartItems: (state) => state.items,
       cartTotal: (state) => Math.max(0, state.totalPrice),
-      removedItems: (state) => state.removedItems,
+      removedItems: (state) => state.removedItems.filter(item => {
+        const now = Date.now();
+        const EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+        return now - item.removedAt < EXPIRY_TIME;
+      }),
     },
   };

@@ -100,20 +100,8 @@ export default {
   35% {
     opacity: 0.8;
   }
-  60% {
-    opacity: 0.6;
-  }
-  75% {
-    opacity: 0.4;
-  }
   100% {
-    transform: 
-      translate(
-        var(--x), 
-        var(--y)
-      )
-      scale(var(--scale))
-      rotate(calc(var(--rotate) * 1.5));
+    transform: translate(var(--x), var(--y)) scale(var(--scale)) rotate(calc(var(--rotate) * 3));
     opacity: 0;
   }
 }

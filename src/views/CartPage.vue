@@ -1,115 +1,158 @@
 
 <template>
   <div class="cart-page">
-    <div class="cart-container">
+    <div class="container">
       <Breadcrumbs />
-      <div class="cart-header">
-        <h1>Shopping Cart</h1>
-        <span class="item-count">{{ cartItems.length }} item{{ cartItems.length !== 1 ? 's' : '' }}</span>
-      </div>
+      
+      <!-- Cart Container -->
+      <div class="cart-container">
+        <div class="cart-header">
+          <h1>Shopping Cart</h1>
+          <span class="item-count">{{ cartItems.length }} item{{ cartItems.length !== 1 ? 's' : '' }}</span>
+        </div>
 
-      <div v-if="cartItems.length > 0 || removedItems.length > 0" class="cart-content">
-        <div class="cart-main">
-          <div v-if="cartItems.length > 0" class="cart-items">
-            <div v-for="item in cartItems" :key="item.id" class="cart-item">
-              <div class="item-image">
-                <img :src="getImageUrl(item.image)" :alt="item.name" />
-              </div>
-              <div class="item-details">
-                <div class="item-info">
-                  <h3>{{ item.name }}</h3>
-                  <p class="size">Size: {{ item.selectedSize }}</p>
-                  <p class="price">${{ item.price }}</p>
+        <!-- Main Cart Section -->
+        <div v-if="cartItems.length > 0" class="cart-content">
+          <!-- Cart Items -->
+          <div class="cart-main">
+            <div class="cart-items">
+              <div v-for="item in cartItems" :key="`${item.id}-${item.selectedSize}`" class="cart-item">
+                <div class="item-image">
+                  <img :src="getImageUrl(item.image)" :alt="item.name" />
                 </div>
-                <div class="item-actions">
-                  <div class="quantity-controls">
-                    <button class="quantity-btn" @click="updateQuantity(item.id, item.quantity - 1)" :disabled="item.quantity <= 1">−</button>
-                    <span class="quantity">{{ item.quantity }}</span>
-                    <button class="quantity-btn" @click="updateQuantity(item.id, item.quantity + 1)">+</button>
+                <div class="item-details">
+                  <div class="item-info">
+                    <h3>{{ item.name }}</h3>
+                    <p class="size">
+                      Size: {{ item.selectedSize }} US
+                      <span v-if="item.sizeConversions" class="size-conversions">
+                        (UK {{ item.sizeConversions.UK }} / EU {{ item.sizeConversions.EU }})
+                      </span>
+                    </p>
+                    <p class="price">${{ item.price }}</p>
                   </div>
-                  <button @click="softDeleteFromCart(item.id)" class="remove-btn">
-                    <span class="remove-icon">×</span>
-                    Remove
-                  </button>
+                  <div class="item-actions">
+                    <div class="quantity-controls">
+                      <button 
+                        class="quantity-btn" 
+                        @click="updateQuantity(item.id, item.selectedSize, item.quantity - 1)" 
+                        :disabled="item.quantity <= 1"
+                      >−</button>
+                      <span class="quantity">{{ item.quantity }}</span>
+                      <button 
+                        class="quantity-btn" 
+                        @click="updateQuantity(item.id, item.selectedSize, item.quantity + 1)"
+                      >+</button>
+                    </div>
+                    <button 
+                      @click="softDeleteFromCart({ id: item.id, selectedSize: item.selectedSize })" 
+                      class="remove-btn"
+                    >
+                      <span class="remove-icon">×</span>
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div v-if="removedItems.length > 0" class="removed-items">
-            <h2>Recently Removed</h2>
-            <div v-for="item in removedItems" :key="item.id" class="removed-item">
-              <div class="item-image">
-                <img :src="getImageUrl(item.image)" :alt="item.name" />
+          <!-- Cart Summary -->
+          <div class="cart-summary">
+            <h2>Order Summary</h2>
+            <div class="summary-details">
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span>${{ cartTotal.toFixed(2) }}</span>
               </div>
-              <div class="item-details">
-                <div class="item-info">
-                  <h3>{{ item.name }}</h3>
-                  <p class="size">Size: {{ item.selectedSize }}</p>
-                  <p class="price">${{ item.price }}</p>
-                </div>
-                <div class="restore-container">
-                  <button @click="handleRestore($event, item.id)" class="restore-btn">
-                    Add Back to Cart
-                  </button>
-                </div>
+              <div class="summary-row">
+                <span>Shipping</span>
+                <span>Free</span>
+              </div>
+              <div class="summary-row total">
+                <span>Total</span>
+                <span>${{ cartTotal.toFixed(2) }}</span>
               </div>
             </div>
-            <Confetti 
-              v-if="showingConfetti"
-              :is-active="true"
-              :mouse-x="mousePosition.x"
-              :mouse-y="mousePosition.y"
-              type="restore"
-            />
+            <router-link 
+              to="/checkout" 
+              class="checkout-button" 
+              :class="{ 'disabled': cartItems.length === 0 }" 
+              :disabled="cartItems.length === 0"
+            >
+              Proceed to Checkout
+            </router-link>
+            <router-link to="/" class="continue-shopping">
+              Continue Shopping
+            </router-link>
           </div>
         </div>
 
-        <div class="cart-summary">
-          <h2>Order Summary</h2>
-          <div class="summary-details">
-            <div class="summary-row">
-              <span>Subtotal</span>
-              <span>${{ cartTotal.toFixed(2) }}</span>
+        <!-- Empty Cart Message -->
+        <div v-else class="empty-cart">
+          <div class="empty-cart-content">
+            <svg class="cart-icon" viewBox="0 0 24 24" width="64" height="64">
+              <path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 3h1l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H6.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H4.21l-.94-2H1v2zm16 15c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+            </svg>
+            <h2>Your cart is empty</h2>
+            <p>Looks like you haven't added anything to your cart yet.</p>
+            <router-link to="/" class="start-shopping-btn">Start Shopping</router-link>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recently Removed Items -->
+      <div v-if="removedItems.length > 0" class="removed-items-section">
+        <h2>Recently Removed</h2>
+        <div class="removed-items">
+          <div 
+            v-for="item in removedItems" 
+            :key="`removed-${item.id}-${item.selectedSize}`" 
+            class="removed-item" 
+            :class="{ 'fade-out': item.isRestoring }"
+          >
+            <div class="item-image">
+              <img :src="getImageUrl(item.image)" :alt="item.name" />
             </div>
-            <div class="summary-row">
-              <span>Shipping</span>
-              <span>Free</span>
-            </div>
-            <div class="summary-row total">
-              <span>Total</span>
-              <span>${{ cartTotal.toFixed(2) }}</span>
+            <div class="item-details">
+              <div class="item-info">
+                <h3>{{ item.name }}</h3>
+                <p class="size">
+                  Size: {{ item.selectedSize }} US
+                  <span v-if="item.sizeConversions" class="size-conversions">
+                    (UK {{ item.sizeConversions.UK }} / EU {{ item.sizeConversions.EU }})
+                  </span>
+                </p>
+                <p class="price">${{ item.price }}</p>
+              </div>
+              <div class="restore-container">
+                <button @click="handleRestore($event, item)" class="restore-btn">
+                  Add Back to Cart
+                </button>
+              </div>
             </div>
           </div>
-          <router-link to="/checkout" class="checkout-button" :class="{ 'disabled': cartItems.length === 0 }" :disabled="cartItems.length === 0">
-            Proceed to Checkout
-          </router-link>
-          <router-link to="/" class="continue-shopping">
-            Continue Shopping
-          </router-link>
         </div>
       </div>
 
-      <div v-else class="empty-cart">
-        <div class="empty-cart-content">
-          <svg class="cart-icon" viewBox="0 0 24 24" width="64" height="64">
-            <path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 3h1l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H6.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H4.21l-.94-2H1v2zm16 15c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
-          </svg>
-          <h2>Your cart is empty</h2>
-          <p>Looks like you haven't added anything to your cart yet.</p>
-          <router-link to="/" class="start-shopping-btn">Start Shopping</router-link>
-        </div>
-      </div>
+      <!-- Confetti Animation -->
+      <Confetti 
+        v-if="showingConfetti"
+        :is-active="true"
+        :mouse-x="mousePosition.x"
+        :mouse-y="mousePosition.y"
+        type="restore"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex';
-import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
+import { mapState, mapGetters, mapActions } from 'vuex';
+import { ref, onMounted, onUnmounted } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import Confetti from '@/components/Confetti.vue';
-import { ref } from 'vue';
+import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
 
 export default {
   name: 'CartPage',
@@ -123,7 +166,8 @@ export default {
   data() {
     return {
       fallbackImage: DEFAULT_SHOE_IMAGE,
-      mousePosition: { x: 0, y: 0 }
+      mousePosition: { x: 0, y: 0 },
+      checkInterval: null
     };
   },
   setup() {
@@ -132,31 +176,57 @@ export default {
       showingConfetti
     };
   },
+  mounted() {
+    // Start periodic check for expired items
+    this.checkInterval = setInterval(() => {
+      this.checkExpiredItems();
+    }, 30000); // Check every 30 seconds
+  },
+  unmounted() {
+    // Clean up interval when component is destroyed
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+    }
+  },
   methods: {
-    ...mapActions('cart', ['softDeleteFromCart', 'restoreToCart', 'removeFromRemoved', 'updateCartItemQuantity']),
+    ...mapActions('cart', [
+      'softDeleteFromCart', 
+      'restoreToCart', 
+      'removeFromRemoved', 
+      'updateCartItemQuantity',
+      'checkExpiredItems'
+    ]),
     getImageUrl(filename) {
-      if (!filename) return DEFAULT_SHOE_IMAGE;
+      if (!filename) return this.fallbackImage;
       return getImageUrl(filename);
     },
-    updateQuantity(itemId, newQuantity) {
+    updateQuantity(id, selectedSize, newQuantity) {
       if (newQuantity > 0) {
-        this.updateCartItemQuantity({ id: itemId, quantity: newQuantity });
+        this.updateCartItemQuantity({ id, selectedSize, quantity: newQuantity });
       }
     },
-    handleRestore(event, itemId) {
+    handleRestore(event, item) {
+      // Set isRestoring flag
+      item.isRestoring = true;
+      
+      // Trigger confetti
       this.mousePosition = {
         x: event.clientX,
         y: event.clientY
       };
       this.showingConfetti = true;
-      this.restoreToCart(itemId);
       
-      // Wait for confetti animation to complete before removing item
+      // Wait for fade-out animation to complete
       setTimeout(() => {
-        this.removeFromRemoved(itemId);
-        this.showingConfetti = false;
-      }, 600); // Match confetti duration
-    }
+        // First restore to cart
+        this.restoreToCart({ id: item.id, selectedSize: item.selectedSize });
+        // Then remove from recently removed
+        this.$nextTick(() => {
+          this.removeFromRemoved({ id: item.id, selectedSize: item.selectedSize });
+          this.showingConfetti = false;
+        });
+      }, 300);
+    },
   }
 };
 </script>
@@ -254,8 +324,14 @@ export default {
 }
 
 .size {
-  color: #6c757d;
-  margin: 0.25rem 0;
+  color: #666;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.size-conversions {
+  color: #888;
+  font-size: 0.85rem;
 }
 
 .price {
@@ -332,35 +408,39 @@ export default {
   font-size: 1.2rem;
 }
 
-.removed-items {
+.removed-items-section {
+  margin-top: 2rem;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
-  position: relative;
+  padding: 2rem;
 }
 
-.removed-items h2 {
-  margin: 0 0 1rem 0;
-  font-size: 1.2rem;
-  color: #6c757d;
+.removed-items-section h2 {
+  margin: 0 0 1.5rem 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+}
+
+.removed-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .removed-item {
   display: flex;
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  opacity: 0.7;
-  background: rgba(0, 0, 0, 0.02);
-  transition: opacity 0.2s;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
 }
 
-.removed-item:hover {
-  opacity: 0.85;
-}
-
-.removed-item:last-child {
-  border-bottom: none;
+.removed-item.fade-out {
+  opacity: 0;
+  transform: translateX(-20px);
+  pointer-events: none;
 }
 
 .restore-container {
@@ -369,18 +449,26 @@ export default {
 }
 
 .restore-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   background: #28a745;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-weight: 500;
   transition: background-color 0.2s;
 }
 
 .restore-btn:hover {
   background: #218838;
+}
+
+.removed-item.fade-out * {
+  pointer-events: none;
+}
+
+.removed-item:not(.fade-out) .restore-btn {
+  pointer-events: auto;
 }
 
 .cart-summary {
@@ -522,6 +610,18 @@ export default {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .removed-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .restore-container {
+    width: 100%;
+    justify-content: center;
+    margin-top: 1rem;
   }
 }
 </style>

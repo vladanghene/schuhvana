@@ -144,21 +144,28 @@ export default {
       this.selectedSize = size;
     },
     handleAddToCart(event) {
-      this.mousePosition = {
-        x: event.clientX,
-        y: event.clientY
-      };
-      this.showConfetti = true;
-      setTimeout(() => {
-        this.showConfetti = false;
-      }, 3000); // Increased timeout to match new animation duration
       if (!this.selectedSize) return;
+
+      // Reset confetti state
+      this.showConfetti = false;
+      this.$nextTick(() => {
+        this.mousePosition = {
+          x: event.clientX,
+          y: event.clientY
+        };
+        this.showConfetti = true;
+      });
+      
+      // Get size conversions
+      const usSize = `US-${this.selectedSize}`;
+      const conversions = this.product.sizeConversions[usSize];
       
       this.addItemToCart({
         id: this.product.id,
         name: this.product.name,
         price: this.product.price,
-        size: this.selectedSize,
+        selectedSize: this.selectedSize,
+        sizeConversions: conversions,
         image: this.currentImage || this.product.image
       });
     },
