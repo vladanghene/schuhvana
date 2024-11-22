@@ -6,22 +6,22 @@ export default {
       removedItems: [], 
     },
     mutations: {
-		  addToCart(state, product) {
+      addToCart(state, product) {
         const item = state.items.find((item) => item.id === product.id);
-				console.log("State: ", item);
         if (item) {
           item.quantity += 1;
         } else {
-          state.items.push({ ...product, quantity: 1
-					});
+          state.items.push({ ...product, quantity: 1 });
         }
-        state.totalPrice += product.price;
+        state.totalPrice = Number((state.totalPrice + product.price).toFixed(2));
       },
       softDeleteFromCart(state, productId) {
         const itemIndex = state.items.findIndex((item) => item.id === productId);
         if (itemIndex !== -1) {
           const removedItem = state.items[itemIndex];
-          state.totalPrice -= removedItem.price * removedItem.quantity;
+          state.totalPrice = Number((state.totalPrice - removedItem.price * removedItem.quantity).toFixed(2));
+          // Ensure totalPrice never goes below 0
+          state.totalPrice = Math.max(0, state.totalPrice);
           state.items.splice(itemIndex, 1);
           state.removedItems.push(removedItem);
         }
@@ -31,7 +31,12 @@ export default {
         if (removedItemIndex !== -1) {
           const restoredItem = state.removedItems[removedItemIndex];
           state.items.push(restoredItem);
-          state.totalPrice += restoredItem.price * restoredItem.quantity;
+          state.totalPrice = Number((state.totalPrice + restoredItem.price * restoredItem.quantity).toFixed(2));
+        }
+      },
+      removeFromRemoved(state, productId) {
+        const removedItemIndex = state.removedItems.findIndex((item) => item.id === productId);
+        if (removedItemIndex !== -1) {
           state.removedItems.splice(removedItemIndex, 1);
         }
       },
@@ -43,7 +48,7 @@ export default {
       updateCartItemQuantity(state, { id, quantity }) {
         const item = state.items.find((item) => item.id === id);
         if (item) {
-          state.totalPrice += (quantity - item.quantity) * item.price;
+          state.totalPrice = Number((state.totalPrice + (quantity - item.quantity) * item.price).toFixed(2));
           item.quantity = quantity;
         }
       },
@@ -58,6 +63,9 @@ export default {
       restoreToCart({ commit }, productId) {
         commit('restoreToCart', productId);
       },
+      removeFromRemoved({ commit }, productId) {
+        commit('removeFromRemoved', productId);
+      },
       clearCart({ commit }) {
         commit('clearCart');
       },
@@ -67,7 +75,7 @@ export default {
     },
     getters: {
       cartItems: (state) => state.items,
-      cartTotal: (state) => state.totalPrice,
+      cartTotal: (state) => Math.max(0, state.totalPrice),
       removedItems: (state) => state.removedItems,
     },
   };

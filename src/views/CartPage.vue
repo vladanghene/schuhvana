@@ -48,11 +48,20 @@
                   <p class="size">Size: {{ item.selectedSize }}</p>
                   <p class="price">${{ item.price }}</p>
                 </div>
-                <button @click="restoreToCart(item.id)" class="restore-btn">
-                  Add Back to Cart
-                </button>
+                <div class="restore-container">
+                  <button @click="handleRestore($event, item.id)" class="restore-btn">
+                    Add Back to Cart
+                  </button>
+                </div>
               </div>
             </div>
+            <Confetti 
+              v-if="showingConfetti"
+              :is-active="true"
+              :mouse-x="mousePosition.x"
+              :mouse-y="mousePosition.y"
+              type="restore"
+            />
           </div>
         </div>
 
@@ -99,22 +108,32 @@
 import { mapGetters, mapActions } from 'vuex';
 import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import Confetti from '@/components/Confetti.vue';
+import { ref } from 'vue';
 
 export default {
   name: 'CartPage',
   components: {
-    Breadcrumbs
+    Breadcrumbs,
+    Confetti
   },
   computed: {
     ...mapGetters('cart', ['cartItems', 'cartTotal', 'removedItems']),
   },
   data() {
     return {
-      fallbackImage: DEFAULT_SHOE_IMAGE
+      fallbackImage: DEFAULT_SHOE_IMAGE,
+      mousePosition: { x: 0, y: 0 }
+    };
+  },
+  setup() {
+    const showingConfetti = ref(false);
+    return {
+      showingConfetti
     };
   },
   methods: {
-    ...mapActions('cart', ['softDeleteFromCart', 'restoreToCart', 'updateCartItemQuantity']),
+    ...mapActions('cart', ['softDeleteFromCart', 'restoreToCart', 'removeFromRemoved', 'updateCartItemQuantity']),
     getImageUrl(filename) {
       if (!filename) return DEFAULT_SHOE_IMAGE;
       return getImageUrl(filename);
@@ -123,8 +142,22 @@ export default {
       if (newQuantity > 0) {
         this.updateCartItemQuantity({ id: itemId, quantity: newQuantity });
       }
+    },
+    handleRestore(event, itemId) {
+      this.mousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+      this.showingConfetti = true;
+      this.restoreToCart(itemId);
+      
+      // Wait for confetti animation to complete before removing item
+      setTimeout(() => {
+        this.removeFromRemoved(itemId);
+        this.showingConfetti = false;
+      }, 600); // Match confetti duration
     }
-  },
+  }
 };
 </script>
 
@@ -303,6 +336,7 @@ export default {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 1.5rem;
+  position: relative;
 }
 
 .removed-items h2 {
@@ -326,6 +360,10 @@ export default {
 
 .removed-item:last-child {
   border-bottom: none;
+}
+
+.restore-container {
+  position: relative;
 }
 
 .restore-btn {

@@ -25,11 +25,19 @@ export default {
     mouseY: {
       type: Number,
       required: true
+    },
+    type: {
+      type: String,
+      default: 'add', // 'add' for blue, 'restore' for green
+      validator: value => ['add', 'restore'].includes(value)
     }
   },
   setup(props) {
     const particleCount = 50;
-    const colors = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#fff'];
+    const colorSchemes = {
+      add: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#fff'],
+      restore: ['#22c55e', '#16a34a', '#4ade80', '#86efac', '#fff']
+    };
 
     const containerStyle = computed(() => ({
       left: `${props.mouseX}px`,
@@ -37,6 +45,7 @@ export default {
     }));
 
     const getParticleStyle = (i) => {
+      const colors = colorSchemes[props.type];
       const r = (i % colors.length);
       const randomX = (Math.random() - 0.5) * 2000;
       const randomY = (Math.random() - 0.5) * 2000;

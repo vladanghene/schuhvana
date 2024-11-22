@@ -53,6 +53,7 @@
               :is-active="showConfetti" 
               :mouse-x="mousePosition.x"
               :mouse-y="mousePosition.y"
+              type="add"
             />
           </div>
           <button class="add-to-wishlist">Add to Wishlist</button>
