@@ -8,7 +8,7 @@
       </router-link>
     </div>
     <div class="hero-image">
-      <img src="/assets/images/products/nike/air-force-1/AF1-1.jpg" alt="Featured Shoe">
+      <img src="/assets/images/products/nike/air-force-1/af1-1.jpg" alt="Featured Shoe">
     </div>
   </section>
 </template>

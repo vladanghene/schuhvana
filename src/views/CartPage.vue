@@ -97,7 +97,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
-import { getProductImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
+import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 
 export default {
@@ -116,14 +116,8 @@ export default {
   methods: {
     ...mapActions('cart', ['softDeleteFromCart', 'restoreToCart', 'updateCartItemQuantity']),
     getImageUrl(filename) {
-      if (!filename) return this.fallbackImage;
-      
-      try {
-        return getProductImageUrl(filename);
-      } catch (error) {
-        console.error('Error processing image URL:', error);
-        return this.fallbackImage;
-      }
+      if (!filename) return DEFAULT_SHOE_IMAGE;
+      return getImageUrl(filename);
     },
     updateQuantity(itemId, newQuantity) {
       if (newQuantity > 0) {

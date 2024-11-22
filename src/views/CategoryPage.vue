@@ -27,7 +27,7 @@ import { ref, computed } from 'vue';
 import SingleProductCard from '../components/SingleProductCard.vue';
 import Breadcrumbs from '../components/Breadcrumbs.vue';
 import { mapGetters } from 'vuex';
-import { getCategoryImageUrl } from '@/utils/imageUtils';
+import { getImageUrl } from '@/utils/imageUtils';
 
 export default {
   name: 'CategoryPage',
@@ -51,7 +51,7 @@ export default {
     },
     categoryImage() {
       if (!this.category?.image) return '';
-      return getCategoryImageUrl(this.category.image);
+      return getImageUrl(this.category.image);
     },
     products() {
       if (!this.category) return [];

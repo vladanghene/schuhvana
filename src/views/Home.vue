@@ -58,7 +58,7 @@
 import { mapGetters, mapActions } from 'vuex';
 import SingleProductCard from '@/components/SingleProductCard.vue';
 import Hero from '@/components/Hero.vue';
-import { defaultShoeImage } from '../assets/images/fallback';
+import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
 
 export default {
   name: 'Home',
@@ -70,7 +70,6 @@ export default {
     return {
       loading: true,
       error: null,
-      fallbackImage: defaultShoeImage,
       imageLoadErrors: new Set()
     }
   },
@@ -90,30 +89,15 @@ export default {
   },
   methods: {
     ...mapActions('products', ['initializeProducts']),
-    getImageUrl(filename) {
-      if (!filename || this.imageLoadErrors.has(filename)) {
-        return this.fallbackImage;
-      }
-      
-      try {
-        // Handle absolute URLs and data URLs
-        if (filename.startsWith('http') || filename.startsWith('data:')) {
-          return filename;
-        }
-
-        // Handle public assets (remove leading slash if present)
-        return filename.startsWith('/') ? filename.slice(1) : filename;
-      } catch (error) {
-        console.error('Error processing image URL:', error);
-        this.imageLoadErrors.add(filename);
-        return this.fallbackImage;
-      }
+    getImageUrl(path) {
+      if (!path || this.imageLoadErrors.has(path)) return DEFAULT_SHOE_IMAGE;
+      return getImageUrl(path);
     },
     handleImageError(e, imagePath) {
       console.warn(`Failed to load image: ${imagePath}`);
       this.imageLoadErrors.add(imagePath);
       if (e.target) {
-        e.target.src = this.fallbackImage;
+        e.target.src = DEFAULT_SHOE_IMAGE;
       }
     }
   },

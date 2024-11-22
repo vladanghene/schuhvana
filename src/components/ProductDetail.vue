@@ -74,7 +74,7 @@
 <script>
 import { mapActions } from 'vuex';
 import Breadcrumbs from './Breadcrumbs.vue';
-import { getProductImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
+import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
 
 export default {
   name: 'ProductDetail',
@@ -92,8 +92,7 @@ export default {
       currentImage: null,
       selectedSize: null,
       showDetails: false,
-      imageLoadErrors: new Set(),
-      fallbackImage: DEFAULT_SHOE_IMAGE
+      imageLoadErrors: new Set()
     };
   },
   methods: {
@@ -101,24 +100,15 @@ export default {
       addItemToCart: 'addToCart'
     }),
     getImageUrl(filename) {
-      if (!filename || this.imageLoadErrors.has(filename)) {
-        return this.fallbackImage;
-      }
-
-      try {
-        return getProductImageUrl(filename);
-      } catch (error) {
-        console.error('Error processing image URL:', error);
-        this.imageLoadErrors.add(filename);
-        return this.fallbackImage;
-      }
+      if (!filename || this.imageLoadErrors.has(filename)) return DEFAULT_SHOE_IMAGE;
+      return getImageUrl(filename);
     },
     handleImageError(e, imagePath) {
       console.warn(`Failed to load image: ${imagePath || e.target.src}`);
       if (imagePath) {
         this.imageLoadErrors.add(imagePath);
       }
-      e.target.src = this.fallbackImage;
+      e.target.src = DEFAULT_SHOE_IMAGE;
     },
     setMainImage(image) {
       this.currentImage = image;
