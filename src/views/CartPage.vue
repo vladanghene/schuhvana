@@ -199,8 +199,14 @@ export default {
         if (!item || !item.removedAt) return '0m 0s';
         
         const now = Date.now();
-        const EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+        const EXPIRY_TIME = 30 * 1000; // 30 seconds in milliseconds
         const timeLeft = Math.max(0, (item.removedAt + EXPIRY_TIME) - now);
+
+        // If time has expired, remove from state
+        if (timeLeft === 0) {
+          this.removeFromRemoved({ id: item.id, selectedSize: item.selectedSize });
+          return '0m 0s';
+        }
         
         const minutes = Math.floor(timeLeft / 60000);
         const seconds = Math.floor((timeLeft % 60000) / 1000);
@@ -235,9 +241,26 @@ export default {
   },
   mounted() {
     // Start periodic check for expired items
+    this.removedItems.forEach(item => {
+      const now = Date.now();
+      const EXPIRY_TIME = 30 * 1000; // 30 seconds in milliseconds
+      const timeLeft = Math.max(0, (item.removedAt + EXPIRY_TIME) - now);
+      
+      if (timeLeft === 0) {
+        this.removeFromRemoved({ id: item.id, selectedSize: item.selectedSize });
+      }
+    });
     this.checkExpiredInterval = setInterval(() => {
-      this.checkExpiredItems();
-    }, 30000); // Check every 30 seconds
+      this.removedItems.forEach(item => {
+        const now = Date.now();
+        const EXPIRY_TIME = 30 * 1000; // 30 seconds in milliseconds
+        const timeLeft = Math.max(0, (item.removedAt + EXPIRY_TIME) - now);
+        
+        if (timeLeft === 0) {
+          this.removeFromRemoved({ id: item.id, selectedSize: item.selectedSize });
+        }
+      });
+    }, 1000); // Check every second
   },
   unmounted() {
     // Clean up interval when component is destroyed
