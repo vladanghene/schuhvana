@@ -20,8 +20,23 @@
 
       <!-- Main product image -->
       <div v-if="currentImage" class="main-product-image">
-        <img :src="getImageUrl(currentImage)" :alt="product.name" @error="handleImageError($event, currentImage)" />
+        <img 
+          :src="getImageUrl(currentImage)" 
+          :alt="product.name" 
+          @error="handleImageError($event, currentImage)"
+          @click="openModal" 
+        />
       </div>
+
+      <!-- Image Modal -->
+      <ImageModal
+        :is-open="isModalOpen"
+        :images="product.images"
+        :current-index="currentImageIndex"
+        :image-alt="product.name"
+        @close="closeModal"
+        @update:currentIndex="updateCurrentIndex"
+      />
 
       <!-- Product information section -->
       <div v-if="product" class="product-info">
@@ -83,13 +98,15 @@
 import { mapActions } from 'vuex';
 import Breadcrumbs from './Breadcrumbs.vue';
 import Confetti from './Confetti.vue';
+import ImageModal from './ImageModal.vue';
 import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
 
 export default {
   name: 'ProductDetail',
   components: {
     Breadcrumbs,
-    Confetti
+    Confetti,
+    ImageModal
   },
   props: {
     product: {
@@ -104,7 +121,8 @@ export default {
       showDetails: false,
       imageLoadErrors: new Set(),
       showConfetti: false,
-      mousePosition: { x: 0, y: 0 }
+      mousePosition: { x: 0, y: 0 },
+      isModalOpen: false
     };
   },
   methods: {
@@ -149,6 +167,20 @@ export default {
     },
     toggleDetails() {
       this.showDetails = !this.showDetails;
+    },
+    openModal() {
+      this.isModalOpen = true;
+    },
+    closeModal() {
+      this.isModalOpen = false;
+    },
+    updateCurrentIndex(index) {
+      this.currentImage = this.product.images[index];
+    }
+  },
+  computed: {
+    currentImageIndex() {
+      return this.product.images.indexOf(this.currentImage);
     }
   },
   mounted() {
@@ -215,7 +247,12 @@ export default {
   width: 100%;
   height: auto;
   border-radius: 12px;
-  object-fit: cover;
+  cursor: zoom-in;
+  transition: transform 0.2s;
+}
+
+.main-product-image img:hover {
+  transform: scale(1.02);
 }
 
 .product-info {

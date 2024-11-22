@@ -244,6 +244,7 @@ export default {
   margin-left: 1.5rem;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .item-info h3 {
@@ -363,12 +364,11 @@ export default {
 }
 
 .restore-container {
-  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .restore-btn {
-  height: fit-content;
-  align-self: center;
   padding: 0.5rem 1rem;
   background: #28a745;
   color: white;
