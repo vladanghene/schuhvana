@@ -10,12 +10,12 @@
 
       <!-- Product Grid -->
       <div class="product-grid">
-        <SingleProductCard
-          v-for="product in products"
-          :key="product.id"
-          :product="product"
-          class="product-card"
-        />
+        <div class="category-card" v-for="product in products" :key="product.id">
+          <div class="category-image">
+            <img :src="product.image" />
+          </div>
+          <h3 class="category-name">{{ product.name }}</h3>
+        </div>
       </div>
     </div>
   </div>
@@ -86,6 +86,39 @@ export default {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
+}
+
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.category-image {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.category-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.category-card:hover .category-image img {
+  transform: scale(1.15);
+}
+
+.category-name {
+  font-size: 1.25rem;
+  margin-top: 1rem;
 }
 
 @media (max-width: 768px) {

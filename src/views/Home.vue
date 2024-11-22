@@ -168,6 +168,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
 }
 
 .category-card:hover {
@@ -179,16 +180,21 @@ export default {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.category-card:hover img {
+  transform: scale(1.15);
 }
 
 .category-card h3 {
-  margin: 16px 16px 8px;
+  margin: 24px 24px 12px;
   font-size: 1.2em;
   color: #333;
 }
 
 .category-card p {
-  margin: 0 16px 16px;
+  margin: 0 24px 24px;
   color: #666;
   flex-grow: 1;
 }

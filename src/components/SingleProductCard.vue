@@ -6,16 +6,15 @@
         class="product-link"
         v-if="product.id"
       >
-        <div class="image-container">
+        <div class="product-image">
           <img 
             :src="imageUrl" 
             :alt="product.name"
             @error="handleImageError"
           />
-        </div>
-        <div class="product-info">
-          <h3>{{ product.name }}</h3>
-          <p class="price">${{ product.price }}</p>
+          <div class="product-name">
+            <h3>{{ product.name }}</h3>
+          </div>
         </div>
       </router-link>
     </div>
@@ -97,6 +96,10 @@ export default {
   border-color: #d0d0d0;
 }
 
+.product-card:hover .product-image img {
+  transform: scale(1.15);
+}
+
 .product-content {
   height: 100%;
   display: flex;
@@ -111,15 +114,14 @@ export default {
   height: 100%;
 }
 
-.image-container {
-  width: 100%;
-  padding-top: 100%; /* 1:1 Aspect Ratio */
+.product-image {
   position: relative;
+  width: 100%;
+  padding-bottom: 100%;
   overflow: hidden;
-  background: #f8f8f8;
 }
 
-.image-container img {
+.product-image img {
   position: absolute;
   top: 0;
   left: 0;
@@ -129,45 +131,33 @@ export default {
   transition: transform 0.3s ease;
 }
 
-.product-card:hover .image-container img {
-  transform: scale(1.05);
+.product-name {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(37, 99, 235, 0.9);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  width: fit-content;
+  display: inline-block;
 }
 
-.product-info {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex-grow: 1;
-  background: white;
-}
-
-.product-info h3 {
+.product-name h3 {
+  color: white;
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
-  line-height: 1.4;
-}
-
-.price {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #1a1a1a;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
-  .product-info {
-    padding: 1rem;
+  .product-name {
+    padding: 0.35rem 0.75rem;
   }
 
-  .product-info h3 {
-    font-size: 1rem;
-  }
-
-  .price {
-    font-size: 1.1rem;
+  .product-name h3 {
+    font-size: 0.9rem;
   }
 }
 </style>
