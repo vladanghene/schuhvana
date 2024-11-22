@@ -47,9 +47,6 @@ export default {
       return getImageUrl(url);
     };
 
-
-    };
-
     const initializeComponent = () => {
       try {
         imageUrl.value = processImageUrl(props.product?.image);
