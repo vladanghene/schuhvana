@@ -46,16 +46,11 @@
         <!-- Size selection -->
         <div class="size-selection">
           <h4>Choose Size</h4>
-          <div class="sizes">
-            <button
-              v-for="size in product.sizes"
-              :key="size"
-              :class="{ active: selectedSize === size }"
-              @click="selectSize(size)"
-            >
-              {{ size }}
-            </button>
-          </div>
+          <SizeSelector
+            :product="product"
+            v-model:selectedSize="selectedSize"
+            selectedScale="US"
+          />
         </div>
 
         <!-- Add to cart and wishlist buttons -->
@@ -99,6 +94,7 @@ import { mapActions } from 'vuex';
 import Breadcrumbs from './Breadcrumbs.vue';
 import Confetti from './Confetti.vue';
 import ImageModal from './ImageModal.vue';
+import SizeSelector from './SizeSelector.vue';
 import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
 
 export default {
@@ -106,7 +102,8 @@ export default {
   components: {
     Breadcrumbs,
     Confetti,
-    ImageModal
+    ImageModal,
+    SizeSelector
   },
   props: {
     product: {
@@ -279,33 +276,6 @@ export default {
 .size-selection h4 {
   margin-bottom: 1rem;
   color: #2c3e50;
-}
-
-.sizes {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.sizes button {
-  width: 50px;
-  height: 50px;
-  border: 2px solid #e9ecef;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-weight: 500;
-}
-
-.sizes button:hover {
-  border-color: #007bff;
-}
-
-.sizes button.active {
-  border-color: #007bff;
-  background: #007bff;
-  color: white;
 }
 
 .action-buttons {
