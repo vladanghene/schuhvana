@@ -24,7 +24,6 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
-import { useStore } from 'vuex';
 
 export default {
   name: 'SingleProductCard',

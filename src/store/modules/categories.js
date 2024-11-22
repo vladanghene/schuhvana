@@ -4,6 +4,12 @@ export default {
   state: {
     categories: [
       {
+        id: 'all',
+        name: 'All Products',
+        image: 'categories/all/all-products.jpg',
+        description: 'Browse our complete collection of shoes'
+      },
+      {
         id: 'discover-classics',
         name: 'Discover Classics',
         image: 'categories/discover-classics/classics.jpg',

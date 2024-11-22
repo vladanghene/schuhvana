@@ -55,6 +55,9 @@ export default {
     },
     products() {
       if (!this.category) return [];
+      if (this.categoryname === 'all') {
+        return this.allProducts || [];
+      }
       return this.allProducts?.filter(p => 
         p?.categories?.includes(this.category.id)
       ) || [];
