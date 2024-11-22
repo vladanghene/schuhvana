@@ -315,12 +315,13 @@ export default {
   display: flex;
   padding: 1rem;
   border-bottom: 1px solid #eee;
-  opacity: 0.8;
+  opacity: 0.7;
+  background: rgba(0, 0, 0, 0.02);
   transition: opacity 0.2s;
 }
 
 .removed-item:hover {
-  opacity: 1;
+  opacity: 0.85;
 }
 
 .removed-item:last-child {
@@ -328,8 +329,8 @@ export default {
 }
 
 .restore-btn {
-  display: inline-flex;
-  align-items: center;
+  height: fit-content;
+  align-self: center;
   padding: 0.5rem 1rem;
   background: #28a745;
   color: white;
@@ -338,7 +339,6 @@ export default {
   cursor: pointer;
   font-size: 0.9rem;
   transition: background-color 0.2s;
-  margin-top: 0.5rem;
 }
 
 .restore-btn:hover {
