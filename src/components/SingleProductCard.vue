@@ -23,8 +23,9 @@
 </template>
 
 <script>
-import { ref, onMounted, nextTick } from 'vue';
-import { getProductImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
+import { ref, onMounted } from 'vue';
+import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
+import { useStore } from 'vuex';
 
 export default {
   name: 'SingleProductCard',
@@ -53,14 +54,13 @@ export default {
       }
     };
 
-    const initializeComponent = async () => {
+    const initializeComponent = () => {
       try {
-        await nextTick();
         imageUrl.value = processImageUrl(props.product?.image);
+        isReady.value = true;
       } catch (error) {
         console.error('Error initializing product card:', error);
         imageUrl.value = DEFAULT_SHOE_IMAGE;
-      } finally {
         isReady.value = true;
       }
     };
