@@ -47,12 +47,11 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(conversion, usSize) in product.sizeConversions" :key="usSize">
-                  <td>{{ usSize.replace('US-', '') }}</td>
-                  <td>{{ conversion.UK }}</td>
-                  <td>{{ conversion.EU }}</td>
-                  <td>{{ conversion.CM }}</td>
-                  <td>{{ conversion.IN }}</td>
+                <tr v-for="size in availableSizes" :key="size">
+                  <td>{{ size }}</td>
+                  <td v-for="scale in availableScales.filter(s => s !== 'US')" :key="scale">
+                    {{ getConversions(size)[scale] }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -99,10 +98,12 @@ export default {
   },
   computed: {
     availableScales() {
-      return Object.keys(this.product.sizes);
+      const sizes = this.$store.getters['products/getProductSizes'](this.product);
+      return Object.keys(sizes);
     },
     availableSizes() {
-      return this.product.sizes[this.currentScale];
+      const sizes = this.$store.getters['products/getProductSizes'](this.product);
+      return sizes[this.currentScale || 'US'];  // Default to US if no scale selected
     }
   },
   methods: {
@@ -110,28 +111,30 @@ export default {
       // Convert the current size to the new scale
       if (this.selectedSize) {
         let newSize;
+        const sizeConversions = this.$store.getters['products/getProductSizeConversions'](this.product);
+        
         if (this.currentScale === 'US') {
           // Converting from US to another scale
           const usSize = `US-${this.selectedSize}`;
-          const conversion = this.product.sizeConversions[usSize];
+          const conversion = sizeConversions[usSize];
           newSize = conversion ? conversion[scale] : null;
         } else if (scale === 'US') {
           // Converting to US
           // Find the US size that matches current size in current scale
-          const usSize = Object.keys(this.product.sizeConversions).find(key => {
-            const conversion = this.product.sizeConversions[key];
+          const usSize = Object.keys(sizeConversions).find(key => {
+            const conversion = sizeConversions[key];
             return conversion[this.currentScale] === this.selectedSize.toString();
           });
           newSize = usSize ? parseFloat(usSize.replace('US-', '')) : null;
         } else {
           // Converting between non-US scales
           // First convert to US, then to target scale
-          const usSize = Object.keys(this.product.sizeConversions).find(key => {
-            const conversion = this.product.sizeConversions[key];
+          const usSize = Object.keys(sizeConversions).find(key => {
+            const conversion = sizeConversions[key];
             return conversion[this.currentScale] === this.selectedSize.toString();
           });
           if (usSize) {
-            const conversion = this.product.sizeConversions[usSize];
+            const conversion = sizeConversions[usSize];
             newSize = conversion[scale];
           }
         }
@@ -154,35 +157,16 @@ export default {
       return this.selectedSize === size;
     },
     getConversions(size) {
-      let conversions = {};
+      const sizeConversions = this.$store.getters['products/getProductSizeConversions'](this.product);
+      const usSize = `US-${size}`;
+      const conversion = sizeConversions[usSize];
+      if (!conversion) return {};
       
-      if (this.currentScale === 'US') {
-        // If current scale is US, direct lookup
-        const usSize = `US-${size}`;
-        const conversion = this.product.sizeConversions[usSize];
-        if (conversion) {
-          conversions = { ...conversion };
-        }
-      } else {
-        // For other scales, find matching US size first
-        const usSize = Object.keys(this.product.sizeConversions).find(key => {
-          const conversion = this.product.sizeConversions[key];
-          return conversion[this.currentScale] === size.toString();
-        });
-        
-        if (usSize) {
-          const conversion = this.product.sizeConversions[usSize];
-          conversions = {
-            US: parseFloat(usSize.replace('US-', '')),
-            ...conversion
-          };
-        }
-      }
-      
-      // Remove current scale from conversions
-      delete conversions[this.currentScale];
-      
-      return conversions;
+      // Remove current scale from conversions and filter out null values
+      return Object.fromEntries(
+        Object.entries(conversion)
+          .filter(([key, value]) => value != null && key !== this.currentScale)
+      );
     },
     toggleSizeGuide() {
       this.showSizeGuide = !this.showSizeGuide;

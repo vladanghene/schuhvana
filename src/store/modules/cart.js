@@ -127,10 +127,9 @@ export default {
       updateCartItemQuantity({ commit }, { id, selectedSize, quantity }) {
         commit('updateCartItemQuantity', { id, selectedSize, quantity });
       },
-      // Add new action to check and remove expired items
       checkExpiredItems({ commit }) {
         commit('removeExpiredItems');
-      },
+      }
     },
     getters: {
       cartItems(state) {

@@ -16,69 +16,71 @@
           <!-- Cart Items -->
           <div class="cart-main">
             <div class="cart-items">
-              <div v-for="item in cartItems" :key="`${item.id}-${item.selectedSize}`" class="cart-item">
-                <div class="item-image">
-                  <img :src="getImageUrl(item.image)" :alt="item.name" />
-                </div>
-                <div class="item-details">
-                  <div class="item-info">
-                    <h3>{{ item.name }}</h3>
-                    <p class="size">
-                      Size: {{ item.selectedSize }} US
-                      <span v-if="item.sizeConversions" class="size-conversions">
-                        (UK {{ item.sizeConversions.UK }} / EU {{ item.sizeConversions.EU }})
-                      </span>
-                    </p>
-                    <p class="price">${{ item.price }}</p>
+              <TransitionGroup name="cart-item" tag="div">
+                <div v-for="item in cartItems" :key="`${item.id}-${item.selectedSize}`" class="cart-item">
+                  <div class="item-image">
+                    <img :src="getImageUrl(item.image)" :alt="item.name" />
                   </div>
-                  <div class="item-actions">
-                    <div class="size-selector">
-                      <select 
-                        v-model="selectedSizes[item.id]" 
-                        @change="handleAddSize(item)"
-                        :disabled="getAvailableSizes(item.id).every(size => isSizeInCart(item.id, size))"
-                      >
-                        <option value="" disabled>Select another size</option>
-                        <option 
-                          v-for="size in getAvailableSizes(item.id)" 
-                          :key="size"
-                          :value="size"
-                          :disabled="isSizeInCart(item.id, size)"
+                  <div class="item-details">
+                    <div class="item-info">
+                      <h3>{{ item.name }}</h3>
+                      <p class="size">
+                        Size: {{ item.selectedSize }} US
+                        <span v-if="item.sizeConversions" class="size-conversions">
+                          (UK {{ item.sizeConversions.UK }} / EU {{ item.sizeConversions.EU }})
+                        </span>
+                      </p>
+                      <p class="price">${{ item.price }}</p>
+                    </div>
+                    <div class="item-actions">
+                      <div class="size-selector">
+                        <select 
+                          v-model="selectedSizes[item.id]" 
+                          @change="handleAddSize(item)"
+                          :disabled="getAvailableSizes(item.id).every(size => isSizeInCart(item.id, size))"
                         >
-                          Size US {{ size }}
-                        </option>
-                      </select>
+                          <option value="" disabled>Select another size</option>
+                          <option 
+                            v-for="size in getAvailableSizes(item.id)" 
+                            :key="size"
+                            :value="size"
+                            :disabled="isSizeInCart(item.id, size)"
+                          >
+                            Size US {{ size }}
+                          </option>
+                        </select>
+                        <button 
+                          v-if="selectedSizes[item.id]" 
+                          @click="handleAddSize(item)"
+                          :disabled="isSizeInCart(item.id, selectedSizes[item.id])"
+                          class="add-size-btn"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                      <div class="quantity-controls">
+                        <button 
+                          class="quantity-btn" 
+                          @click="updateQuantity(item.id, item.selectedSize, item.quantity - 1)" 
+                          :disabled="item.quantity <= 1"
+                        >−</button>
+                        <span class="quantity">{{ item.quantity }}</span>
+                        <button 
+                          class="quantity-btn" 
+                          @click="updateQuantity(item.id, item.selectedSize, item.quantity + 1)"
+                        >+</button>
+                      </div>
                       <button 
-                        v-if="selectedSizes[item.id]" 
-                        @click="handleAddSize(item)"
-                        :disabled="isSizeInCart(item.id, selectedSizes[item.id])"
-                        class="add-size-btn"
+                        @click="softDeleteFromCart({ id: item.id, selectedSize: item.selectedSize })" 
+                        class="remove-btn"
                       >
-                        Add to Cart
+                        <span class="remove-icon">×</span>
+                        Remove
                       </button>
                     </div>
-                    <div class="quantity-controls">
-                      <button 
-                        class="quantity-btn" 
-                        @click="updateQuantity(item.id, item.selectedSize, item.quantity - 1)" 
-                        :disabled="item.quantity <= 1"
-                      >−</button>
-                      <span class="quantity">{{ item.quantity }}</span>
-                      <button 
-                        class="quantity-btn" 
-                        @click="updateQuantity(item.id, item.selectedSize, item.quantity + 1)"
-                      >+</button>
-                    </div>
-                    <button 
-                      @click="softDeleteFromCart({ id: item.id, selectedSize: item.selectedSize })" 
-                      class="remove-btn"
-                    >
-                      <span class="remove-icon">×</span>
-                      Remove
-                    </button>
                   </div>
                 </div>
-              </div>
+              </TransitionGroup>
             </div>
           </div>
 
@@ -129,7 +131,7 @@
       <!-- Recently Removed Items -->
       <div v-if="removedItems.length > 0" class="removed-items-section">
         <h2>Recently Removed</h2>
-        <div class="removed-items">
+        <TransitionGroup name="removed-item" tag="div" class="removed-items">
           <div 
             v-for="item in removedItems" 
             :key="`removed-${item.id}-${item.selectedSize}`" 
@@ -157,7 +159,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </TransitionGroup>
       </div>
 
       <!-- Confetti Animation -->
@@ -192,17 +194,19 @@ export default {
     getAvailableSizes() {
       return (productId) => {
         const product = this.getProductById(productId);
-        return product ? product.sizes.US : [];
+        if (!product) return [];
+        const sizes = this.$store.getters['products/getProductSizes'](product);
+        return sizes.US || [];  // Always use US sizes for consistency
       };
     }
   },
   data() {
     return {
       fallbackImage: DEFAULT_SHOE_IMAGE,
-      mousePosition: { x: 0, y: 0 },
-      checkInterval: null,
       selectedSizes: {},
-      showingConfetti: false
+      showingConfetti: false,
+      mousePosition: { x: 0, y: 0 },
+      checkExpiredInterval: null
     };
   },
   created() {
@@ -213,14 +217,14 @@ export default {
   },
   mounted() {
     // Start periodic check for expired items
-    this.checkInterval = setInterval(() => {
+    this.checkExpiredInterval = setInterval(() => {
       this.checkExpiredItems();
     }, 30000); // Check every 30 seconds
   },
   unmounted() {
     // Clean up interval when component is destroyed
-    if (this.checkInterval) {
-      clearInterval(this.checkInterval);
+    if (this.checkExpiredInterval) {
+      clearInterval(this.checkExpiredInterval);
     }
   },
   methods: {
@@ -228,55 +232,84 @@ export default {
       'softDeleteFromCart', 
       'restoreToCart', 
       'removeFromRemoved', 
+      'clearCart',
       'updateCartItemQuantity',
+      'addToCart',
       'checkExpiredItems'
     ]),
-    getImageUrl(filename) {
-      if (!filename) return this.fallbackImage;
-      return getImageUrl(filename);
-    },
+    ...mapGetters('products', ['getProductById']),
+    getImageUrl,
     updateQuantity(id, selectedSize, newQuantity) {
       if (newQuantity > 0) {
         this.updateCartItemQuantity({ id, selectedSize, quantity: newQuantity });
       }
     },
     handleRestore(event, item) {
-      // Set isRestoring flag
-      item.isRestoring = true;
+      // Get fresh size conversions from store
+      const product = this.getProductById(item.id);
+      if (!product) return;
       
-      // Trigger confetti
+      const sizeConversions = this.$store.getters['products/getProductSizeConversions'](product);
+      const usSize = `US-${item.selectedSize}`;
+      const conversions = sizeConversions[usSize];
+      
+      // Update item with fresh size conversions
+      const updatedItem = {
+        ...item,
+        sizeConversions: conversions
+      };
+
       this.mousePosition = {
         x: event.clientX,
         y: event.clientY
       };
       this.showingConfetti = true;
       
-      // Wait for fade-out animation to complete
+      // Restore item with updated conversions
+      this.restoreToCart({ 
+        id: updatedItem.id, 
+        selectedSize: updatedItem.selectedSize,
+        sizeConversions: updatedItem.sizeConversions
+      });
+
+      // Remove item from removedItems list
+      this.removeFromRemoved({
+        id: updatedItem.id,
+        selectedSize: updatedItem.selectedSize
+      });
+      
+      // Reset confetti after animation
       setTimeout(() => {
-        // First restore to cart
-        this.restoreToCart({ id: item.id, selectedSize: item.selectedSize });
-        // Then remove from recently removed
-        this.$nextTick(() => {
-          this.removeFromRemoved({ id: item.id, selectedSize: item.selectedSize });
-          this.showingConfetti = false;
-        });
-      }, 300);
+        this.showingConfetti = false;
+      }, 2000);
+    },
+    handleAddSize(item) {
+      const size = this.selectedSizes[item.id];
+      if (!size) return;
+
+      // Get fresh size conversions from store
+      const product = this.getProductById(item.id);
+      if (!product) return;
+      
+      const sizeConversions = this.$store.getters['products/getProductSizeConversions'](product);
+      const usSize = `US-${size}`;
+      const conversions = sizeConversions[usSize];
+
+      // Add new size with fresh conversions
+      this.addToCart({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        selectedSize: size,
+        sizeConversions: conversions,
+        image: item.image
+      });
+
+      // Reset selection
+      this.selectedSizes[item.id] = '';
     },
     isSizeInCart(id, size) {
       return this.cartItems.some(item => item.id === id && item.selectedSize === size);
-    },
-    handleAddSize(item) {
-      if (this.selectedSizes[item.id] && !this.isSizeInCart(item.id, this.selectedSizes[item.id])) {
-        const product = this.getProductById(item.id);
-        if (product) {
-          this.$store.dispatch('cart/addItemToCart', {
-            id: item.id,
-            selectedSize: this.selectedSizes[item.id],
-            quantity: 1
-          });
-          this.selectedSizes[item.id] = '';
-        }
-      }
     }
   }
 };
@@ -417,7 +450,7 @@ export default {
   cursor: pointer;
   min-width: 150px;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 0.7rem center;
   background-size: 1em;
@@ -703,6 +736,34 @@ export default {
 
 .start-shopping-btn:hover {
   background: #0056b3;
+}
+
+/* Cart Items Animation */
+.cart-item-enter-active,
+.cart-item-leave-active {
+  transition: all 0.5s ease;
+}
+
+.cart-item-enter-from,
+.cart-item-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+/* Recently Removed Items Animation */
+.removed-item-enter-active,
+.removed-item-leave-active {
+  transition: all 0.5s ease;
+}
+
+.removed-item-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.removed-item-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 
 @media (max-width: 768px) {

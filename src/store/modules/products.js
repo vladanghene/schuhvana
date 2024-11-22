@@ -3,6 +3,98 @@ export default {
   state: {
     products: [],
     product: null,
+    standardSizes: {
+      "men-regular": {
+        sizes: {
+          US: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12],
+          UK: [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11],
+          EU: [40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45, 45.5, 46],
+          CM: [25, 25.5, 26, 26.5, 27, 27.5, 28, 28.5, 29, 29.5, 30],
+          IN: [9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2, 11.4, 11.6, 11.8]
+        },
+        sizeConversions: {
+          "US-7": { UK: "6", EU: "40", CM: "25", IN: "9.8" },
+          "US-7.5": { UK: "6.5", EU: "40.5", CM: "25.5", IN: "10" },
+          "US-8": { UK: "7", EU: "41", CM: "26", IN: "10.2" },
+          "US-8.5": { UK: "7.5", EU: "42", CM: "26.5", IN: "10.4" },
+          "US-9": { UK: "8", EU: "42.5", CM: "27", IN: "10.6" },
+          "US-9.5": { UK: "8.5", EU: "43", CM: "27.5", IN: "10.8" },
+          "US-10": { UK: "9", EU: "44", CM: "28", IN: "11" },
+          "US-10.5": { UK: "9.5", EU: "44.5", CM: "28.5", IN: "11.2" },
+          "US-11": { UK: "10", EU: "45", CM: "29", IN: "11.4" },
+          "US-11.5": { UK: "10.5", EU: "45.5", CM: "29.5", IN: "11.6" },
+          "US-12": { UK: "11", EU: "46", CM: "30", IN: "11.8" }
+        }
+      },
+      "men-small": {
+        sizes: {
+          US: [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11],
+          UK: [5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10],
+          EU: [38, 38.5, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5],
+          CM: [24, 24.5, 25, 25.5, 26, 26.5, 27, 27.5, 28, 28.5, 29],
+          IN: [9.2, 9.4, 9.6, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2]
+        },
+        sizeConversions: {
+          "US-6": { UK: "5", EU: "38", CM: "24", IN: "9.2" },
+          "US-6.5": { UK: "5.5", EU: "38.5", CM: "24.5", IN: "9.4" },
+          "US-7": { UK: "6", EU: "39", CM: "25", IN: "9.6" },
+          "US-7.5": { UK: "6.5", EU: "40", CM: "25.5", IN: "9.8" },
+          "US-8": { UK: "7", EU: "40.5", CM: "26", IN: "10" },
+          "US-8.5": { UK: "7.5", EU: "41", CM: "26.5", IN: "10.2" },
+          "US-9": { UK: "8", EU: "42", CM: "27", IN: "10.4" },
+          "US-9.5": { UK: "8.5", EU: "42.5", CM: "27.5", IN: "10.6" },
+          "US-10": { UK: "9", EU: "43", CM: "28", IN: "10.8" },
+          "US-10.5": { UK: "9.5", EU: "44", CM: "28.5", IN: "11" },
+          "US-11": { UK: "10", EU: "44.5", CM: "29", IN: "11.2" }
+        }
+      },
+      "women-regular": {
+        sizes: {
+          US: [5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11],
+          UK: [2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5],
+          EU: [35, 35.5, 36, 37, 37.5, 38, 38.5, 39, 40, 40.5, 41, 42, 42.5],
+          CM: [22, 22.5, 23, 23.5, 24, 24.5, 25, 25.5, 26, 26.5, 27, 27.5, 28],
+          IN: [8.7, 8.9, 9.1, 9.3, 9.4, 9.6, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 11]
+        },
+        sizeConversions: {
+          "US-5": { UK: "2.5", EU: "35", CM: "22", IN: "8.7" },
+          "US-5.5": { UK: "3", EU: "35.5", CM: "22.5", IN: "8.9" },
+          "US-6": { UK: "3.5", EU: "36", CM: "23", IN: "9.1" },
+          "US-6.5": { UK: "4", EU: "37", CM: "23.5", IN: "9.3" },
+          "US-7": { UK: "4.5", EU: "37.5", CM: "24", IN: "9.4" },
+          "US-7.5": { UK: "5", EU: "38", CM: "24.5", IN: "9.6" },
+          "US-8": { UK: "5.5", EU: "38.5", CM: "25", IN: "9.8" },
+          "US-8.5": { UK: "6", EU: "39", CM: "25.5", IN: "10" },
+          "US-9": { UK: "6.5", EU: "40", CM: "26", IN: "10.2" },
+          "US-9.5": { UK: "7", EU: "40.5", CM: "26.5", IN: "10.4" },
+          "US-10": { UK: "7.5", EU: "41", CM: "27", IN: "10.6" },
+          "US-10.5": { UK: "8", EU: "42", CM: "27.5", IN: "10.8" },
+          "US-11": { UK: "8.5", EU: "42.5", CM: "28", IN: "11" }
+        }
+      },
+      "women-small": {
+        sizes: {
+          US: [4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9],
+          UK: [1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5],
+          EU: [33.5, 34, 35, 35.5, 36, 37, 37.5, 38, 38.5, 39, 40],
+          CM: [21, 21.5, 22, 22.5, 23, 23.5, 24, 24.5, 25, 25.5, 26],
+          IN: [8.3, 8.5, 8.7, 8.9, 9.1, 9.3, 9.4, 9.6, 9.8, 10, 10.2]
+        },
+        sizeConversions: {
+          "US-4": { UK: "1.5", EU: "33.5", CM: "21", IN: "8.3" },
+          "US-4.5": { UK: "2", EU: "34", CM: "21.5", IN: "8.5" },
+          "US-5": { UK: "2.5", EU: "35", CM: "22", IN: "8.7" },
+          "US-5.5": { UK: "3", EU: "35.5", CM: "22.5", IN: "8.9" },
+          "US-6": { UK: "3.5", EU: "36", CM: "23", IN: "9.1" },
+          "US-6.5": { UK: "4", EU: "37", CM: "23.5", IN: "9.3" },
+          "US-7": { UK: "4.5", EU: "37.5", CM: "24", IN: "9.4" },
+          "US-7.5": { UK: "5", EU: "38", CM: "24.5", IN: "9.6" },
+          "US-8": { UK: "5.5", EU: "38.5", CM: "25", IN: "9.8" },
+          "US-8.5": { UK: "6", EU: "39", CM: "25.5", IN: "10" },
+          "US-9": { UK: "6.5", EU: "40", CM: "26", IN: "10.2" }
+        }
+      }
+    }
   },
   mutations: {
     setProducts(state, products) {
@@ -33,26 +125,7 @@ export default {
             ],
             price: 129.99,
             description: 'The Nike Air Max 90 stays true to its OG running roots with the iconic Waffle outsole, stitched overlays and classic TPU accents. Fresh colors give a modern look while Max Air cushioning adds comfort to your journey.',
-            sizes: {
-              US: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12],
-              UK: [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11],
-              EU: [40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45, 45.5, 46],
-              CM: [25, 25.5, 26, 26.5, 27, 27.5, 28, 28.5, 29, 29.5, 30],
-              IN: [9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2, 11.4, 11.6, 11.8]
-            },
-            sizeConversions: {
-              "US-7": { UK: "6", EU: "40", CM: "25", IN: "9.8" },
-              "US-7.5": { UK: "6.5", EU: "40.5", CM: "25.5", IN: "10" },
-              "US-8": { UK: "7", EU: "41", CM: "26", IN: "10.2" },
-              "US-8.5": { UK: "7.5", EU: "42", CM: "26.5", IN: "10.4" },
-              "US-9": { UK: "8", EU: "42.5", CM: "27", IN: "10.6" },
-              "US-9.5": { UK: "8.5", EU: "43", CM: "27.5", IN: "10.8" },
-              "US-10": { UK: "9", EU: "44", CM: "28", IN: "11" },
-              "US-10.5": { UK: "9.5", EU: "44.5", CM: "28.5", IN: "11.2" },
-              "US-11": { UK: "10", EU: "45", CM: "29", IN: "11.4" },
-              "US-11.5": { UK: "10.5", EU: "45.5", CM: "29.5", IN: "11.6" },
-              "US-12": { UK: "11", EU: "46", CM: "30", IN: "11.8" }
-            },
+            sizeType: 'men-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
           },
@@ -75,26 +148,7 @@ export default {
             ],
             price: 99.99,
             description: 'The iconic Air Force 1, a timeless classic that never goes out of style.',
-            sizes: {
-              US: [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11],
-              UK: [5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10],
-              EU: [38, 38.5, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5],
-              CM: [24, 24.5, 25, 25.5, 26, 26.5, 27, 27.5, 28, 28.5, 29],
-              IN: [9.2, 9.4, 9.6, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2]
-            },
-            sizeConversions: {
-              "US-6": { UK: "5", EU: "38", CM: "24", IN: "9.2" },
-              "US-6.5": { UK: "5.5", EU: "38.5", CM: "24.5", IN: "9.4" },
-              "US-7": { UK: "6", EU: "39", CM: "25", IN: "9.6" },
-              "US-7.5": { UK: "6.5", EU: "40", CM: "25.5", IN: "9.8" },
-              "US-8": { UK: "7", EU: "40.5", CM: "26", IN: "10" },
-              "US-8.5": { UK: "7.5", EU: "41", CM: "26.5", IN: "10.2" },
-              "US-9": { UK: "8", EU: "42", CM: "27", IN: "10.4" },
-              "US-9.5": { UK: "8.5", EU: "42.5", CM: "27.5", IN: "10.6" },
-              "US-10": { UK: "9", EU: "43", CM: "28", IN: "10.8" },
-              "US-10.5": { UK: "9.5", EU: "44", CM: "28.5", IN: "11" },
-              "US-11": { UK: "10", EU: "44.5", CM: "29", IN: "11.2" }
-            },
+            sizeType: 'men-small',
             material: 'Leather and synthetic upper',
             style: 'Classic'
           },
@@ -117,24 +171,7 @@ export default {
             ],
             price: 109.99,
             description: 'Originally made for the hardwood, the Nike Dunk has become a streetwear icon.',
-            sizes: {
-              US: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11],
-              UK: [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10],
-              EU: [40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45],
-              CM: [25, 25.5, 26, 26.5, 27, 27.5, 28, 28.5, 29],
-              IN: [9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2, 11.4]
-            },
-            sizeConversions: {
-              "US-7": { UK: "6", EU: "40", CM: "25", IN: "9.8" },
-              "US-7.5": { UK: "6.5", EU: "40.5", CM: "25.5", IN: "10" },
-              "US-8": { UK: "7", EU: "41", CM: "26", IN: "10.2" },
-              "US-8.5": { UK: "7.5", EU: "42", CM: "26.5", IN: "10.4" },
-              "US-9": { UK: "8", EU: "42.5", CM: "27", IN: "10.6" },
-              "US-9.5": { UK: "8.5", EU: "43", CM: "27.5", IN: "10.8" },
-              "US-10": { UK: "9", EU: "44", CM: "28", IN: "11" },
-              "US-10.5": { UK: "9.5", EU: "44.5", CM: "28.5", IN: "11.2" },
-              "US-11": { UK: "10", EU: "45", CM: "29", IN: "11.4" }
-            },
+            sizeType: 'men-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
           },
@@ -157,24 +194,7 @@ export default {
             ],
             price: 149.99,
             description: 'High-performance running shoes designed for comfort and speed. Features ZoomX foam and a full-length carbon fiber plate for exceptional energy return.',
-            sizes: {
-              US: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11],
-              UK: [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10],
-              EU: [40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45],
-              CM: [25, 25.5, 26, 26.5, 27, 27.5, 28, 28.5, 29],
-              IN: [9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2, 11.4]
-            },
-            sizeConversions: {
-              "US-7": { UK: "6", EU: "40", CM: "25", IN: "9.8" },
-              "US-7.5": { UK: "6.5", EU: "40.5", CM: "25.5", IN: "10" },
-              "US-8": { UK: "7", EU: "41", CM: "26", IN: "10.2" },
-              "US-8.5": { UK: "7.5", EU: "42", CM: "26.5", IN: "10.4" },
-              "US-9": { UK: "8", EU: "42.5", CM: "27", IN: "10.6" },
-              "US-9.5": { UK: "8.5", EU: "43", CM: "27.5", IN: "10.8" },
-              "US-10": { UK: "9", EU: "44", CM: "28", IN: "11" },
-              "US-10.5": { UK: "9.5", EU: "44.5", CM: "28.5", IN: "11.2" },
-              "US-11": { UK: "10", EU: "45", CM: "29", IN: "11.4" }
-            },
+            sizeType: 'men-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
           },
@@ -197,24 +217,7 @@ export default {
             ],
             price: 159.99,
             description: 'Professional-grade football boots with innovative studs and enhanced touch control for optimal performance on the field.',
-            sizes: {
-              US: [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10],
-              UK: [5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9],
-              EU: [38, 38.5, 39, 40, 40.5, 41, 42, 42.5, 43],
-              CM: [24, 24.5, 25, 25.5, 26, 26.5, 27, 27.5, 28],
-              IN: [9.2, 9.4, 9.6, 9.8, 10, 10.2, 10.4, 10.6, 10.8]
-            },
-            sizeConversions: {
-              "US-6": { UK: "5", EU: "38", CM: "24", IN: "9.2" },
-              "US-6.5": { UK: "5.5", EU: "38.5", CM: "24.5", IN: "9.4" },
-              "US-7": { UK: "6", EU: "39", CM: "25", IN: "9.6" },
-              "US-7.5": { UK: "6.5", EU: "40", CM: "25.5", IN: "9.8" },
-              "US-8": { UK: "7", EU: "40.5", CM: "26", IN: "10" },
-              "US-8.5": { UK: "7.5", EU: "41", CM: "26.5", IN: "10.2" },
-              "US-9": { UK: "8", EU: "42", CM: "27", IN: "10.4" },
-              "US-9.5": { UK: "8.5", EU: "42.5", CM: "27.5", IN: "10.6" },
-              "US-10": { UK: "9", EU: "43", CM: "28", IN: "10.8" }
-            },
+            sizeType: 'men-small',
             material: 'Leather and synthetic upper',
             style: 'Classic'
           },
@@ -237,24 +240,7 @@ export default {
             ],
             price: 169.99,
             description: 'Basketball shoes engineered for explosive performance on the court, featuring Zoom Air units and durable traction pattern.',
-            sizes: {
-              US: [8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12],
-              UK: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11],
-              EU: [41, 41.5, 42, 42.5, 43, 44, 44.5, 45, 46],
-              CM: [26, 26.5, 27, 27.5, 28, 28.5, 29, 29.5, 30],
-              IN: [10, 10.2, 10.4, 10.6, 10.8, 11, 11.2, 11.4, 11.6]
-            },
-            sizeConversions: {
-              "US-8": { UK: "7", EU: "41", CM: "26", IN: "10" },
-              "US-8.5": { UK: "7.5", EU: "41.5", CM: "26.5", IN: "10.2" },
-              "US-9": { UK: "8", EU: "42", CM: "27", IN: "10.4" },
-              "US-9.5": { UK: "8.5", EU: "42.5", CM: "27.5", IN: "10.6" },
-              "US-10": { UK: "9", EU: "43", CM: "28", IN: "10.8" },
-              "US-10.5": { UK: "9.5", EU: "44", CM: "28.5", IN: "11" },
-              "US-11": { UK: "10", EU: "44.5", CM: "29", IN: "11.2" },
-              "US-11.5": { UK: "10.5", EU: "45", CM: "29.5", IN: "11.4" },
-              "US-12": { UK: "11", EU: "46", CM: "30", IN: "11.6" }
-            },
+            sizeType: 'men-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
           }
@@ -280,6 +266,8 @@ export default {
   getters: {
     allProducts: state => state.products,
     product: state => state.product,
-    getProductById: state => id => state.products.find(product => product.id === id)
+    getProductById: state => id => state.products.find(product => product.id === id),
+    getProductSizes: state => product => state.standardSizes[product.sizeType].sizes,
+    getProductSizeConversions: state => product => state.standardSizes[product.sizeType].sizeConversions
   }
 };

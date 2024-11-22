@@ -15,6 +15,10 @@
           <div class="product-name">
             <h3>{{ product.name }}</h3>
           </div>
+          <div class="product-details">
+            <p class="price">${{ product.price }}</p>
+            <p class="size-type">{{ formatSizeType(product.sizeType || 'men-regular') }}</p>
+          </div>
         </div>
       </router-link>
     </div>
@@ -64,6 +68,16 @@ export default {
       }
     };
 
+    const formatSizeType = (sizeType) => {
+      const types = {
+        'men-regular': "Men's Regular",
+        'men-small': "Men's Small",
+        'women-regular': "Women's Regular",
+        'women-small': "Women's Small"
+      };
+      return types[sizeType] || types['men-regular'];
+    };
+
     onMounted(() => {
       initializeComponent();
     });
@@ -71,8 +85,8 @@ export default {
     return {
       isReady,
       imageUrl,
-      imageLoadError,
-      handleImageError
+      handleImageError,
+      formatSizeType
     };
   }
 };
@@ -148,6 +162,23 @@ export default {
   font-weight: 600;
   text-align: center;
   white-space: nowrap;
+}
+
+.product-details {
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.price {
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 0.5rem 0;
+}
+
+.size-type {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
 }
 
 @media (max-width: 768px) {

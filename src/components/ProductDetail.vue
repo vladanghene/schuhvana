@@ -156,9 +156,10 @@ export default {
         this.showConfetti = true;
       });
       
-      // Get size conversions
+      // Get size conversions from store
       const usSize = `US-${this.selectedSize}`;
-      const conversions = this.product.sizeConversions[usSize];
+      const sizeConversions = this.$store.getters['products/getProductSizeConversions'](this.product);
+      const conversions = sizeConversions[usSize];
       
       this.addItemToCart({
         id: this.product.id,

@@ -49,12 +49,24 @@ export default {
 	},
   methods: {
     addToCart(product) {
-      const cartItem = this.cart.find(item => item.id === product.id);
-      if (cartItem) {
-        cartItem.quantity++;
-      } else {
-        this.cart.push({ ...product, quantity: 1 });
+      const sizeType = product.sizeType || 'men-regular'; // Default to men-regular if not specified
+      const availableSizes = this.$store.getters['products/getProductSizes'](product);
+      const defaultSize = availableSizes[0]; // Use first available size as default
+      
+      if (!defaultSize) {
+        console.warn('No sizes available for product:', product.name);
+        return;
       }
+
+      const sizeConversions = this.$store.getters['products/getProductSizeConversions'](product);
+      const usSize = `US-${defaultSize}`;
+      const conversions = sizeConversions[usSize];
+
+      this.$store.dispatch('cart/addToCart', {
+        ...product,
+        selectedSize: defaultSize,
+        sizeConversions: conversions
+      });
     },
     clearCart() {
       this.cart = [];
