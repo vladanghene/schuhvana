@@ -843,14 +843,15 @@ export default {
 
 .time-remaining {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: rgba(0, 0, 0, 0.05);
+  top: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.03);
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: 0 8px 0 8px;
   font-size: 0.75rem;
   color: #4b5563;
   font-weight: 500;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .checkout-button {
