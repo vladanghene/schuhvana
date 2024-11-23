@@ -3,7 +3,7 @@
     <div class="container">
       <Breadcrumbs />
     </div>
-    
+
     <div class="product-content">
       <!-- Left-side vertical image gallery -->
       <div v-if="product && product.images && product.images.length" class="image-gallery">
@@ -20,13 +20,13 @@
 
       <!-- Main product image -->
       <div v-if="currentImage" class="main-product-image">
-        <img 
-          :src="getImageUrl(currentImage)" 
-          :alt="product.name" 
+        <img
+          :src="getImageUrl(currentImage)"
+          :alt="product.name"
           @error="handleImageError($event, currentImage)"
-          @click="openModal" 
+          @click="openModal"
         />
-        
+
         <!-- Size selection -->
         <div class="size-selection">
           <h4>Choose Size</h4>
@@ -59,8 +59,8 @@
             <button class="add-to-cart" @click="handleAddToCart($event)" :disabled="!selectedSize">
               {{ selectedSize ? 'Add to Cart' : 'Select a Size' }}
             </button>
-            <Confetti 
-              :is-active="showConfetti" 
+            <Confetti
+              :is-active="showConfetti"
               :mouse-x="mousePosition.x"
               :mouse-y="mousePosition.y"
               type="add"
@@ -155,12 +155,12 @@ export default {
         };
         this.showConfetti = true;
       });
-      
+
       // Get size conversions from store
       const usSize = `US-${this.selectedSize}`;
       const sizeConversions = this.$store.getters['products/getProductSizeConversions'](this.product);
       const conversions = sizeConversions[usSize];
-      
+
       this.addItemToCart({
         id: this.product.id,
         name: this.product.name,
@@ -169,6 +169,11 @@ export default {
         sizeConversions: conversions,
         image: this.currentImage || this.product.image
       });
+
+      // Wait for confetti animation before redirecting
+      setTimeout(() => {
+        this.$router.push('/cart');
+      }, 500);
     },
     toggleDetails() {
       this.showDetails = !this.showDetails;
