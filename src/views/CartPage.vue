@@ -179,7 +179,7 @@
 
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex';
-import { onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import Confetti from '@/components/Confetti.vue';
 import { getImageUrl, DEFAULT_SHOE_IMAGE } from '@/utils/imageUtils';
@@ -190,6 +190,22 @@ export default {
     Breadcrumbs,
     Confetti
   },
+  setup() {
+    const now = ref(Date.now());
+    let timer = null;
+
+    onMounted(() => {
+      timer = setInterval(() => {
+        now.value = Date.now();
+      }, 1000);
+    });
+
+    onUnmounted(() => {
+      if (timer) clearInterval(timer);
+    });
+
+    return { now };
+  },
   computed: {
     ...mapGetters('cart', ['cartItems', 'cartTotal', 'removedItems']),
     ...mapGetters('products', ['getProductById']),
@@ -198,11 +214,9 @@ export default {
       return (item) => {
         if (!item || !item.removedAt) return '0m 0s';
         
-        const now = Date.now();
-        const EXPIRY_TIME = 30 * 1000; // 30 seconds in milliseconds
-        const timeLeft = Math.max(0, (item.removedAt + EXPIRY_TIME) - now);
-
-        // If time has expired, remove from state
+        const EXPIRY_TIME = 30 * 1000;
+        const timeLeft = Math.max(0, (item.removedAt + EXPIRY_TIME) - this.now);
+        
         if (timeLeft === 0) {
           this.removeFromRemoved({ id: item.id, selectedSize: item.selectedSize });
           return '0m 0s';
@@ -229,7 +243,6 @@ export default {
       selectedSizesChange: {},
       showingConfetti: false,
       mousePosition: { x: 0, y: 0 },
-      checkExpiredInterval: null
     };
   },
   created() {
@@ -238,56 +251,6 @@ export default {
       this.selectedSizes[item.id] = '';
       this.selectedSizesChange[item.id] = '';
     });
-  },
-  mounted() {
-    // Start periodic check for expired items
-    this.removedItems.forEach(item => {
-      const now = Date.now();
-      const EXPIRY_TIME = 30 * 1000; // 30 seconds in milliseconds
-      const timeLeft = Math.max(0, (item.removedAt + EXPIRY_TIME) - now);
-      
-      if (timeLeft === 0) {
-        this.removeFromRemoved({ id: item.id, selectedSize: item.selectedSize });
-      }
-    });
-    this.checkExpiredInterval = setInterval(() => {
-      this.removedItems.forEach(item => {
-        const now = Date.now();
-        const EXPIRY_TIME = 30 * 1000; // 30 seconds in milliseconds
-        const timeLeft = Math.max(0, (item.removedAt + EXPIRY_TIME) - now);
-        
-        if (timeLeft === 0) {
-          this.removeFromRemoved({ id: item.id, selectedSize: item.selectedSize });
-        }
-      });
-    }, 1000); // Check every second
-  },
-  unmounted() {
-    // Clean up interval when component is destroyed
-    if (this.checkExpiredInterval) {
-      clearInterval(this.checkExpiredInterval);
-    }
-  },
-  watch: {
-    cartItems: {
-      handler(newItems) {
-        // Clear any existing timer
-        if (this.emptyMessageTimer) {
-          clearTimeout(this.emptyMessageTimer);
-        }
-        
-        if (newItems.length === 0) {
-          // Set timer to show empty message after 2 seconds
-          this.showEmptyMessage = false;
-          setTimeout(() => {
-            this.showEmptyMessage = true;
-          }, 2000);
-        } else {
-          this.showEmptyMessage = false;
-        }
-      },
-      immediate: true
-    }
   },
   methods: {
     ...mapActions('cart', [
@@ -851,7 +814,9 @@ export default {
   font-size: 0.75rem;
   color: #4b5563;
   font-weight: 500;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8),
+              inset 0 2px 2px rgba(0, 0, 0, 0.03),
+              0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .checkout-button {
