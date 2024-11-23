@@ -37,14 +37,14 @@
                               @change="handleSizeChange(item)"
                               class="change-size-select"
                             >
-                              <option value="">Select a different size</option>
+                              <option value="">Select different size</option>
                               <option 
-                                v-for="size in getAvailableSizes(item.id)"
-                                :key="size"
-                                :value="size"
-                                :disabled="isSizeInCart(item.id, size)"
+                                v-for="size in getAvailableSizes(getProductById(item.id))" 
+                                :key="size.value"
+                                :value="size.value"
+                                :disabled="isSizeInCart(item.id, size.value)"
                               >
-                                US {{ size }}
+                                {{ size.label }}
                               </option>
                             </select>
                           </div>
@@ -56,16 +56,16 @@
                           <select 
                             v-model="selectedSizes[item.id]" 
                             @change="handleAddSize(item)"
-                            :disabled="getAvailableSizes(item.id).every(size => isSizeInCart(item.id, size))"
+                            :disabled="getAvailableSizes(getProductById(item.id)).every(size => isSizeInCart(item.id, size.value))"
                           >
                             <option value="" disabled>Add a new size to cart</option>
                             <option 
-                              v-for="size in getAvailableSizes(item.id)" 
-                              :key="size"
-                              :value="size"
-                              :disabled="isSizeInCart(item.id, size)"
+                              v-for="size in getAvailableSizes(getProductById(item.id))" 
+                              :key="size.value"
+                              :value="size.value"
+                              :disabled="isSizeInCart(item.id, size.value)"
                             >
-                              Size US {{ size }}
+                              {{ size.label }}
                             </option>
                           </select>
                           <button 
@@ -208,8 +208,8 @@ export default {
   },
   computed: {
     ...mapGetters('cart', ['cartItems', 'cartTotal', 'removedItems']),
-    ...mapGetters('products', ['getProductById', 'getSizeConversions']),
-    ...mapState('user', ['userPreferredScale']),
+    ...mapGetters('products', ['getProductById', 'getSizeConversions', 'getProductSizes']),
+    ...mapGetters('user', ['getCurrentScale']),
     
     getDisplaySize() {
       return (item) => {
@@ -219,8 +219,8 @@ export default {
         const conversions = this.getSizeConversions(item.selectedSize, product);
         if (!conversions) return item.selectedSize;
 
-        // Always use current user preferred scale
-        return `${this.userPreferredScale}: ${conversions[this.userPreferredScale] || item.selectedSize}`;
+        const currentScale = this.getCurrentScale;
+        return `${currentScale}: ${conversions[currentScale] || item.selectedSize}`;
       };
     },
 
@@ -243,11 +243,19 @@ export default {
     },
 
     getAvailableSizes() {
-      return (productId) => {
-        const product = this.getProductById(productId);
+      return (product) => {
         if (!product) return [];
-        const sizes = this.$store.getters['products/getProductSizes'](product);
-        return sizes.US || [];  // Always use US sizes for consistency
+        const sizes = this.getProductSizes(product);
+        const euSizes = sizes.EU || [];
+        return euSizes.map(size => {
+          const conversions = this.getSizeConversions(size, product);
+          if (!conversions) return { value: size, label: `EU: ${size}` };
+          const currentScale = this.getCurrentScale;
+          return {
+            value: size,
+            label: `${currentScale}: ${conversions[currentScale] || size}`
+          };
+        });
       };
     }
   },
@@ -277,7 +285,6 @@ export default {
       'checkExpiredItems',
       'changeCartItemSize'
     ]),
-    ...mapGetters('products', ['getProductById']),
     getImageUrl,
     updateQuantity(id, selectedSize, newQuantity) {
       if (newQuantity > 0) {
@@ -285,20 +292,6 @@ export default {
       }
     },
     handleRestore(event, item) {
-      // Get fresh size conversions from store
-      const product = this.getProductById(item.id);
-      if (!product) return;
-      
-      const sizeConversions = this.$store.getters['products/getProductSizeConversions'](product);
-      const usSize = `US-${item.selectedSize}`;
-      const conversions = sizeConversions[usSize];
-      
-      // Update item with fresh size conversions
-      const updatedItem = {
-        ...item,
-        sizeConversions: conversions
-      };
-
       this.mousePosition = {
         x: event.clientX,
         y: event.clientY
@@ -306,20 +299,19 @@ export default {
       this.showingConfetti = true;
       
       // Initialize select boxes for the restored item
-      this.selectedSizes[updatedItem.id] = '';
-      this.selectedSizesChange[updatedItem.id] = '';
+      this.selectedSizes[item.id] = '';
+      this.selectedSizesChange[item.id] = '';
       
-      // Restore item with updated conversions
+      // Restore item
       this.restoreToCart({ 
-        id: updatedItem.id, 
-        selectedSize: updatedItem.selectedSize,
-        sizeConversions: updatedItem.sizeConversions
+        id: item.id, 
+        selectedSize: item.selectedSize
       });
 
       // Remove item from removedItems list
       this.removeFromRemoved({
-        id: updatedItem.id,
-        selectedSize: updatedItem.selectedSize
+        id: item.id,
+        selectedSize: item.selectedSize
       });
       
       // Reset confetti after animation
@@ -331,21 +323,12 @@ export default {
       const size = this.selectedSizes[item.id];
       if (!size) return;
 
-      // Get fresh size conversions from store
-      const product = this.getProductById(item.id);
-      if (!product) return;
-      
-      const sizeConversions = this.$store.getters['products/getProductSizeConversions'](product);
-      const usSize = `US-${size}`;
-      const conversions = sizeConversions[usSize];
-
-      // Add new size with fresh conversions
+      // Add new size
       this.addToCart({
         id: item.id,
         name: item.name,
         price: item.price,
         selectedSize: size,
-        sizeConversions: conversions,
         image: item.image
       });
 
@@ -357,22 +340,14 @@ export default {
       if (!newSize) return; // Skip if no size selected
       
       if (!this.isSizeInCart(item.id, newSize)) {
-        // Get fresh size conversions from store
-        const product = this.getProductById(item.id);
-        if (!product) return;
-        
-        const sizeConversions = this.$store.getters['products/getProductSizeConversions'](product);
-        const usSize = `US-${newSize}`;
-        const conversions = sizeConversions[usSize];
-
         await this.changeCartItemSize({ 
           id: item.id, 
           oldSize: item.selectedSize, 
-          newSize,
-          sizeConversions: conversions
+          newSize
         });
         
-        this.selectedSizesChange[item.id] = ''; // Reset selection
+        // Reset selection
+        this.selectedSizesChange[item.id] = '';
       }
     },
     isSizeInCart(id, size) {
@@ -596,7 +571,6 @@ export default {
 .size-conversions {
   color: #9ca3af;
   font-size: 0.875rem;
-  white-space: nowrap;
 }
 
 .item-info .price {

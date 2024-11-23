@@ -3,7 +3,7 @@ export default {
   state: {
     userInfo: null,
     isAuthenticated: false,
-    userPreferredScale: localStorage.getItem('preferredSizeScale') || 'EU',
+    userPreferredScale: localStorage.getItem('userPreferredScale') || 'EU',
     defaultScale: 'EU', // Default fallback scale
     availableScales: ['EU', 'US', 'UK', 'CM', 'IN'],
   },
@@ -18,14 +18,15 @@ export default {
         // Validate the scale before setting it
         if (state.availableScales.includes(scale)) {
           state.userPreferredScale = scale;
-          localStorage.setItem('preferredSizeScale', scale);
+          localStorage.setItem('userPreferredScale', scale);
         }
       }
     },
     logout(state) {
       state.userInfo = null;
       state.isAuthenticated = false;
-      // Keep the preferred scale in localStorage even after logout
+      state.userPreferredScale = 'EU';
+      localStorage.setItem('userPreferredScale', 'EU');
     },
     setPreferredScale(state, scale) {
       // Validate scale before setting
@@ -34,7 +35,7 @@ export default {
       }
       
       state.userPreferredScale = scale;
-      localStorage.setItem('preferredSizeScale', scale);
+      localStorage.setItem('userPreferredScale', scale);
       
       // Update the scale in user profile if logged in
       if (state.userInfo) {
@@ -54,7 +55,7 @@ export default {
       // Ensure we have a valid scale, even if not logged in
       if (!state.availableScales.includes(state.userPreferredScale)) {
         state.userPreferredScale = state.defaultScale;
-        localStorage.setItem('preferredSizeScale', state.defaultScale);
+        localStorage.setItem('userPreferredScale', state.defaultScale);
       }
     }
   },

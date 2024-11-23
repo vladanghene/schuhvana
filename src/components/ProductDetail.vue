@@ -136,13 +136,16 @@ export default {
     };
   },
   computed: {
-    ...mapState('user', ['userPreferredScale']),
+    ...mapState('user', ['userPreferredScale', 'availableScales']),
     ...mapGetters('user', ['getCurrentScale', 'getDefaultScale']),
     ...mapGetters('products', ['getProductById', 'getAvailableScales']),
     currentImageIndex() {
       return this.localProduct?.images?.indexOf(this.currentImage) || 0;
     },
     defaultScale() {
+      return this.getCurrentScale;
+    },
+    currentScale() {
       return this.getCurrentScale;
     }
   },
