@@ -6,9 +6,9 @@
 
     <div class="product-content">
       <!-- Left-side vertical image gallery -->
-      <div v-if="product && product.images && product.images.length" class="image-gallery">
+      <div v-if="localProduct && localProduct.images && localProduct.images.length" class="image-gallery">
         <img
-          v-for="image in product.images"
+          v-for="image in localProduct.images"
           :key="image"
           :src="getImageUrl(image)"
           @click="setMainImage(image)"
@@ -22,7 +22,7 @@
       <div v-if="currentImage" class="main-product-image">
         <img
           :src="getImageUrl(currentImage)"
-          :alt="product.name"
+          :alt="localProduct.name"
           @error="handleImageError($event, currentImage)"
           @click="openModal"
         />
@@ -31,9 +31,9 @@
         <div class="size-selection">
           <h4>Choose Size</h4>
           <SizeSelector
-            :product="product"
+            :product="localProduct"
             v-model:selectedSize="selectedSize"
-            selectedScale="US"
+            :defaultScale="defaultScale"
           />
         </div>
       </div>
@@ -41,17 +41,17 @@
       <!-- Image Modal -->
       <ImageModal
         :is-open="isModalOpen"
-        :images="product.images"
+        :images="localProduct.images"
         :current-index="currentImageIndex"
-        :image-alt="product.name"
+        :image-alt="localProduct.name"
         @close="closeModal"
         @update:currentIndex="updateCurrentIndex"
       />
 
       <!-- Product information section -->
-      <div v-if="product" class="product-info">
-        <h1>{{ product.name }}</h1>
-        <p class="price">${{ product.price }}</p>
+      <div v-if="localProduct" class="product-info">
+        <h1>{{ localProduct.name }}</h1>
+        <p class="price">${{ localProduct.price }}</p>
 
         <!-- Add to cart and wishlist buttons -->
         <div class="action-buttons">
@@ -72,11 +72,28 @@
         <!-- Product details and reviews -->
         <div class="product-details">
           <h3>Product Details</h3>
-          <p>{{ product.description }}</p>
+          <p>{{ localProduct.description }}</p>
           <button @click="toggleDetails">Show More</button>
           <div v-if="showDetails">
-            <p>Material: {{ product.material }}</p>
-            <p>Style: {{ product.style }}</p>
+            <p>Material: {{ localProduct.material }}</p>
+            <p>Style: {{ localProduct.style }}</p>
+            <p class="size-type">Size Type: <span class="size-type-value">{{ localProduct.sizeType }}</span></p>
+            <p class="size-type">
+              Current Scale: 
+              <select 
+                v-model="selectedScale" 
+                class="scale-select"
+                @change="updateScale"
+              >
+                <option 
+                  v-for="scale in getAvailableScales" 
+                  :key="scale" 
+                  :value="scale"
+                >
+                  {{ scale }}
+                </option>
+              </select>
+            </p>
           </div>
         </div>
       </div>
@@ -90,7 +107,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapState, mapGetters } from 'vuex';
 import Breadcrumbs from './Breadcrumbs.vue';
 import Confetti from './Confetti.vue';
 import ImageModal from './ImageModal.vue';
@@ -105,30 +122,54 @@ export default {
     ImageModal,
     SizeSelector
   },
-  props: {
-    product: {
-      type: Object,
-      required: true
-    }
-  },
   data() {
     return {
-      currentImage: null,
-      selectedSize: null,
       showDetails: false,
-      imageLoadErrors: new Set(),
+      selectedSize: null,
+      currentImage: null,
+      isModalOpen: false,
       showConfetti: false,
       mousePosition: { x: 0, y: 0 },
-      isModalOpen: false
+      imageLoadErrors: new Set(),
+      localProduct: null,
+      selectedScale: null,
     };
+  },
+  computed: {
+    ...mapState('user', ['userPreferredScale']),
+    ...mapGetters('user', ['getCurrentScale', 'getDefaultScale']),
+    ...mapGetters('products', ['getProductById', 'getAvailableScales']),
+    currentImageIndex() {
+      return this.localProduct?.images?.indexOf(this.currentImage) || 0;
+    },
+    defaultScale() {
+      return this.getCurrentScale;
+    }
   },
   methods: {
     ...mapActions('cart', {
       addItemToCart: 'addToCart'
     }),
+    ...mapActions('user', ['updatePreferredScale']),
+    loadProduct(id) {
+      if (id) {
+        this.localProduct = this.getProductById(id);
+        console.log('Loaded product:', this.localProduct);
+        if (this.localProduct && !this.currentImage) {
+          this.currentImage = this.localProduct.images?.[0] || null;
+        }
+      }
+    },
     getImageUrl(filename) {
-      if (!filename || this.imageLoadErrors.has(filename)) return DEFAULT_SHOE_IMAGE;
-      return getImageUrl(filename);
+      try {
+        if (!filename || this.imageLoadErrors.has(filename)) {
+          return DEFAULT_SHOE_IMAGE;
+        }
+        return getImageUrl(filename);
+      } catch (error) {
+        console.error('Error getting image URL:', error);
+        return DEFAULT_SHOE_IMAGE;
+      }
     },
     handleImageError(e, imagePath) {
       console.warn(`Failed to load image: ${imagePath || e.target.src}`);
@@ -146,32 +187,21 @@ export default {
     handleAddToCart(event) {
       if (!this.selectedSize) return;
 
-      // Reset confetti state
-      this.showConfetti = false;
-      this.$nextTick(() => {
-        this.mousePosition = {
-          x: event.clientX,
-          y: event.clientY
-        };
-        this.showConfetti = true;
-      });
-
-      // Get size conversions from store
-      const usSize = `US-${this.selectedSize}`;
-      const sizeConversions = this.$store.getters['products/getProductSizeConversions'](this.product);
-      const conversions = sizeConversions[usSize];
-
+      this.mousePosition.x = event.clientX;
+      this.mousePosition.y = event.clientY;
+      
       this.addItemToCart({
-        id: this.product.id,
-        name: this.product.name,
-        price: this.product.price,
+        id: this.localProduct.id,
+        name: this.localProduct.name,
+        price: this.localProduct.price,
         selectedSize: this.selectedSize,
-        sizeConversions: conversions,
-        image: this.currentImage || this.product.image
+        quantity: 1,
+        image: this.currentImage || this.localProduct.images[0]
       });
 
-      // Wait for confetti animation before redirecting
+      this.showConfetti = true;
       setTimeout(() => {
+        this.showConfetti = false;
         this.$router.push('/cart');
       }, 500);
     },
@@ -185,17 +215,25 @@ export default {
       this.isModalOpen = false;
     },
     updateCurrentIndex(index) {
-      this.currentImage = this.product.images[index];
+      this.currentImage = this.localProduct?.images?.[index];
+    },
+    updateScale() {
+      this.updatePreferredScale(this.selectedScale);
     }
   },
-  computed: {
-    currentImageIndex() {
-      return this.product.images.indexOf(this.currentImage);
+  created() {
+    const id = this.$route.params.id;
+    if (id) {
+      this.loadProduct(id);
     }
+    this.selectedScale = this.getCurrentScale;
   },
-  mounted() {
-    if (this.product) {
-      this.currentImage = this.product.images?.[0] || this.product.image;
+  watch: {
+    '$route.params.id': {
+      immediate: true,
+      handler(newId) {
+        this.loadProduct(newId);
+      }
     }
   }
 };
@@ -370,10 +408,48 @@ export default {
   text-decoration: underline;
 }
 
+.size-type {
+  margin-top: 0.5rem;
+}
+
+.size-type-value {
+  color: #4b5563;
+  text-transform: capitalize;
+}
+
 .loading-state {
   text-align: center;
   color: #6c757d;
   padding: 2rem;
+}
+
+.scale-select {
+  display: inline-block;
+  padding: 0.25rem 1.5rem 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  color: #4b5563;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b7280'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.25rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  appearance: none;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scale-select:hover {
+  border-color: #3b82f6;
+}
+
+.scale-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 @media (max-width: 1024px) {

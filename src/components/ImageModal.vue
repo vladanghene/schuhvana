@@ -1,83 +1,158 @@
 <template>
-  <Transition name="modal">
-    <div v-if="isOpen" class="modal-overlay" @click="close">
-      <div class="modal-content" @click.stop>
-        <button class="close-button" @click="close">&times;</button>
-        <div class="image-container">
-          <button 
-            v-if="hasPrevious" 
-            class="nav-button prev" 
-            @click="previousImage"
-          >&lt;</button>
-          <img :src="currentImage" :alt="imageAlt" />
-          <button 
-            v-if="hasNext" 
-            class="nav-button next" 
-            @click="nextImage"
-          >&gt;</button>
-        </div>
+  <div v-if="show" class="modal-overlay" @click="closeModal">
+    <div class="modal-content" @click.stop>
+      <button class="close-button" @click="closeModal">&times;</button>
+      
+      <div class="image-container">
+        <button 
+          v-if="hasPrevious" 
+          class="nav-button prev" 
+          @click="previousImage"
+        >&lt;</button>
+        
+        <img 
+          :src="currentImage" 
+          :alt="altText"
+          @error="handleImageError" 
+          class="main-image"
+        />
+        
+        <button 
+          v-if="hasNext" 
+          class="nav-button next" 
+          @click="nextImage"
+        >&gt;</button>
+      </div>
+
+      <div v-if="showThumbnails && images.length > 1" class="thumbnails">
+        <img 
+          v-for="(img, index) in images" 
+          :key="index"
+          :src="getThumbnailUrl(img)"
+          :alt="'Thumbnail ' + (index + 1)"
+          :class="{ active: index === currentIndex }"
+          @click="setCurrentImage(index)"
+          @error="handleThumbnailError($event, index)"
+        />
       </div>
     </div>
-  </Transition>
+  </div>
 </template>
 
 <script>
-import { ref, computed } from 'vue';
-import { getImageUrl } from '@/utils/imageUtils';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { getImageUrl, getThumbnailUrl, DEFAULT_IMAGE } from '@/utils/imageUtils';
 
 export default {
   name: 'ImageModal',
+  
   props: {
-    isOpen: {
+    show: {
       type: Boolean,
-      required: true
+      default: false
     },
     images: {
       type: Array,
-      required: true
+      default: () => []
     },
-    currentIndex: {
+    initialIndex: {
       type: Number,
-      required: true
+      default: 0
     },
-    imageAlt: {
+    showThumbnails: {
+      type: Boolean,
+      default: true
+    },
+    altText: {
       type: String,
-      default: 'Product image'
+      default: 'Product Image'
     }
   },
-  emits: ['close', 'update:currentIndex'],
+
   setup(props, { emit }) {
+    const currentIndex = ref(props.initialIndex);
+
+    // Computed properties for navigation
+    const hasPrevious = computed(() => currentIndex.value > 0);
+    const hasNext = computed(() => currentIndex.value < props.images.length - 1);
+    
+    // Get current image URL with fallback
     const currentImage = computed(() => {
-      if (!props.images.length) return '';
-      return getImageUrl(props.images[props.currentIndex]);
+      if (!props.images.length) return DEFAULT_IMAGE;
+      return getImageUrl(props.images[currentIndex.value]);
     });
 
-    const hasPrevious = computed(() => props.currentIndex > 0);
-    const hasNext = computed(() => props.currentIndex < props.images.length - 1);
-
-    const close = () => {
-      emit('close');
-    };
-
+    // Navigation methods
     const previousImage = () => {
       if (hasPrevious.value) {
-        emit('update:currentIndex', props.currentIndex - 1);
+        currentIndex.value--;
       }
     };
 
     const nextImage = () => {
       if (hasNext.value) {
-        emit('update:currentIndex', props.currentIndex + 1);
+        currentIndex.value++;
       }
     };
 
+    const setCurrentImage = (index) => {
+      if (index >= 0 && index < props.images.length) {
+        currentIndex.value = index;
+      }
+    };
+
+    // Event handlers
+    const closeModal = () => {
+      emit('close');
+    };
+
+    const handleImageError = (event) => {
+      event.target.src = DEFAULT_IMAGE;
+    };
+
+    const handleThumbnailError = (event, index) => {
+      event.target.src = DEFAULT_IMAGE;
+      console.error(`Failed to load thumbnail ${index}`);
+    };
+
+    // Keyboard navigation
+    const handleKeydown = (event) => {
+      if (!props.show) return;
+      
+      switch (event.key) {
+        case 'ArrowLeft':
+          previousImage();
+          break;
+        case 'ArrowRight':
+          nextImage();
+          break;
+        case 'Escape':
+          closeModal();
+          break;
+      }
+    };
+
+    // Lifecycle hooks
+    onMounted(() => {
+      window.addEventListener('keydown', handleKeydown);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('keydown', handleKeydown);
+    });
+
     return {
+      currentIndex,
       currentImage,
       hasPrevious,
       hasNext,
-      close,
       previousImage,
-      nextImage
+      nextImage,
+      setCurrentImage,
+      closeModal,
+      handleImageError,
+      handleThumbnailError,
+      getThumbnailUrl
     };
   }
 };
@@ -90,7 +165,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background-color: rgba(0, 0, 0, 0.75);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -98,10 +173,23 @@ export default {
 }
 
 .modal-content {
-  position: relative;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
   max-width: 90vw;
   max-height: 90vh;
-  background: transparent;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1;
 }
 
 .image-container {
@@ -111,63 +199,64 @@ export default {
   justify-content: center;
 }
 
-.image-container img {
-  max-width: 90vw;
-  max-height: 85vh;
+.main-image {
+  max-width: 100%;
+  max-height: 70vh;
   object-fit: contain;
-}
-
-.close-button {
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: transparent;
-  color: white;
-  font-size: 32px;
-  cursor: pointer;
-  z-index: 1001;
 }
 
 .nav-button {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.8);
   border: none;
-  color: white;
-  font-size: 24px;
+  border-radius: 50%;
   width: 40px;
-  height: 60px;
+  height: 40px;
+  font-size: 20px;
   cursor: pointer;
-  transition: background-color 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.3s;
 }
 
 .nav-button:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .prev {
-  left: -60px;
+  left: 10px;
 }
 
 .next {
-  right: -60px;
+  right: 10px;
 }
 
-/* Modal transition animations */
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.3s ease;
+.thumbnails {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  overflow-x: auto;
+  padding: 10px 0;
 }
 
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
+.thumbnails img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  transition: border-color 0.3s;
+}
+
+.thumbnails img.active {
+  border-color: #4CAF50;
+}
+
+.thumbnails img:hover {
+  border-color: #81C784;
 }
 </style>

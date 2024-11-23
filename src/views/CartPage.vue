@@ -27,9 +27,9 @@
                       <div class="item-info">
                         <h3>{{ item.name }}</h3>
                         <div class="size">
-                          Size: {{ item.selectedSize }} US
+                          Size: {{ getDisplaySize(item) }}
                           <div v-if="item.sizeConversions" class="size-conversions">
-                            (UK {{ item.sizeConversions.UK }} / EU {{ item.sizeConversions.EU }})
+                            ({{ item.sizeConversions.UK }} / {{ item.sizeConversions.EU }})
                           </div>
                           <div class="item-size">
                             <select 
@@ -152,7 +152,7 @@
                 <img :src="getImageUrl(item.image)" :alt="item.name" class="removed-thumb">
                 <div class="removed-details">
                   <h4>{{ item.name }}</h4>
-                  <p>Size: US {{ item.selectedSize }}</p>
+                  <p>Size: {{ getDisplaySize(item) }}</p>
                   <p>${{ item.price }}</p>
                 </div>
                 <div class="time-remaining">{{ getTimeRemaining(item) }}</div>
@@ -208,8 +208,22 @@ export default {
   },
   computed: {
     ...mapGetters('cart', ['cartItems', 'cartTotal', 'removedItems']),
-    ...mapGetters('products', ['getProductById']),
+    ...mapGetters('products', ['getProductById', 'getSizeConversions']),
+    ...mapState('user', ['userPreferredScale']),
     
+    getDisplaySize() {
+      return (item) => {
+        const product = this.getProductById(item.id);
+        if (!product) return item.selectedSize;
+
+        const conversions = this.getSizeConversions(item.selectedSize, product);
+        if (!conversions) return item.selectedSize;
+
+        // Always use current user preferred scale
+        return `${this.userPreferredScale}: ${conversions[this.userPreferredScale] || item.selectedSize}`;
+      };
+    },
+
     getTimeRemaining() {
       return (item) => {
         if (!item || !item.removedAt) return '0m 0s';
@@ -814,9 +828,9 @@ export default {
   font-size: 0.75rem;
   color: #4b5563;
   font-weight: 500;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8),
-              inset 0 2px 2px rgba(0, 0, 0, 0.03),
-              0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0px -2px 2px rgba(255, 255, 255, 0.8),
+              inset 0px 2px 2px rgba(0, 0, 0, 0.03),
+              0px 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .checkout-button {
@@ -909,7 +923,7 @@ export default {
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: inset 0px -2px 2px rgba(255, 255, 255, 0.8),
-              inset 0px 2px 2px rgba(0, 0, 0, 0.1),
+              inset 0px 2px 2px rgba(0, 0, 0, 0.03),
               0px 2px 4px rgba(0, 0, 0, 0.05);
 }
 

@@ -13,14 +13,9 @@
         class="size-button"
       >
         <div class="size-content">
-          <Transition name="fade" mode="out-in">
-            <span :key="currentScale + size" v-if="isSelected(size) || hoveredSize === size" class="size-text">
-              {{ currentScale }}: {{ getConversionValue(size) }}
-            </span>
-            <span v-else class="size-text">
-              {{ size }}
-            </span>
-          </Transition>
+          <span class="size-text">
+            {{ getCurrentDisplay(size) }}
+          </span>
         </div>
       </button>
     </div>
@@ -34,23 +29,18 @@
           <button class="close-button" @click="toggleSizeGuide">&times;</button>
           <h3>Size Guide</h3>
           <div class="size-chart">
+            <p class="size-type">Size Type: {{ product.sizeType }}</p>
             <table>
               <thead>
                 <tr>
-                  <th>US</th>
-                  <th>UK</th>
-                  <th>EU</th>
-                  <th>CM</th>
-                  <th>IN</th>
+                  <th v-for="scale in scaleOrder" :key="scale">{{ scale }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="size in availableSizes" :key="size">
-                  <td>{{ size }}</td>
-                  <td>{{ getConversions(size).UK }}</td>
-                  <td>{{ getConversions(size).EU }}</td>
-                  <td>{{ getConversions(size).CM }}</td>
-                  <td>{{ getConversions(size).IN }}</td>
+                  <td v-for="scale in scaleOrder" :key="scale">
+                    {{ scale === currentScale ? size : getConversions(size)[scale] }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -71,6 +61,8 @@
 </template>
 
 <script>
+import { mapState, mapGetters } from 'vuex';
+
 export default {
   name: 'SizeSelector',
   props: {
@@ -81,177 +73,121 @@ export default {
     selectedSize: {
       type: [Number, String],
       default: null
+    },
+    defaultScale: {
+      type: String,
+      default: null
     }
   },
   data() {
     return {
       showSizeGuide: false,
-      currentConversionIndex: 0,
-      conversionInterval: null,
-      currentScale: 'US',
       hoveredSize: null,
-      scaleOrder: ['US', 'UK', 'EU', 'CM', 'IN'],
-      selectedInterval: null,
-      debug: false // For debugging purposes
+      conversionIndex: 0,
+      conversionInterval: null,
+      debug: false
     };
   },
   computed: {
+    ...mapState('user', ['userPreferredScale']),
+    ...mapState('products', ['product']),
+    ...mapGetters('products', ['getAvailableScales', 'getSizeConversions', 'getProductSizes']),
+    currentScale() {
+      return this.defaultScale || this.userPreferredScale || 'EU';
+    },
     availableSizes() {
-      const sizes = this.$store.getters['products/getProductSizes'](this.product);
-      return sizes.US || [];
-    }
-  },
-  watch: {
-    // Debug watcher to track state changes
-    hoveredSize(newVal, oldVal) {
-      if (this.debug) console.log('hoveredSize changed:', oldVal, '->', newVal);
+      const sizes = this.getProductSizes(this.product);
+      // Always get EU sizes as base (they're numbers)
+      return sizes['EU'] || [];
     },
-    currentScale(newVal, oldVal) {
-      if (this.debug) console.log('currentScale changed:', oldVal, '->', newVal);
-    },
-    selectedSize: {
-      immediate: true,
-      handler(newSize) {
-        if (newSize) {
-          this.startSelectedCycle(newSize);
-        } else {
-          this.clearSelectedInterval();
-        }
-      }
+    scaleOrder() {
+      return this.getAvailableScales;
     }
   },
   methods: {
     startConversions(size) {
-      if (this.debug) console.log('startConversions called for size:', size);
+      this.hoveredSize = size;
+      // Start with current scale
+      const scales = this.scaleOrder;
+      this.conversionIndex = scales.indexOf(this.currentScale);
       
-      // Don't start hover cycle if size is selected
-      if (this.isSelected(size)) return;
-      
-      // Don't start if already cycling for this size
-      if (this.hoveredSize === size && this.conversionInterval) {
-        if (this.debug) console.log('Already cycling for size:', size);
-        return;
+      // Clear any existing interval
+      if (this.conversionInterval) {
+        clearInterval(this.conversionInterval);
       }
       
-      // Clear any existing hover interval
-      this.clearConversionInterval();
-      
-      // Set initial state for hover
-      this.hoveredSize = size;
-      this.currentConversionIndex = 0;
-      this.currentScale = this.scaleOrder[0];
-      
-      if (this.debug) console.log('Starting hover interval for size:', size);
-      
-      // Start new hover interval
       this.conversionInterval = setInterval(() => {
-        if (!this.hoveredSize || this.isSelected(this.hoveredSize)) {
-          if (this.debug) console.log('Clearing hover interval');
-          this.clearConversionInterval();
-          return;
-        }
-        
-        this.currentConversionIndex = (this.currentConversionIndex + 1) % this.scaleOrder.length;
-        this.currentScale = this.scaleOrder[this.currentConversionIndex];
-        
-        if (this.debug) console.log('Hover interval tick:', this.currentScale);
+        // Move to next scale
+        this.conversionIndex = (this.conversionIndex + 1) % scales.length;
       }, 2000);
     },
     stopConversions(size) {
-      if (this.debug) console.log('stopConversions called for size:', size);
-      
-      // Don't stop if this size is selected
-      if (this.isSelected(size)) return;
-      
-      // Only stop if this is the currently hovered size
-      if (this.hoveredSize === size) {
-        if (this.debug) console.log('Stopping conversions for size:', size);
-        this.clearConversionInterval();
-        this.resetConversionState();
+      // Only stop if size is not selected and we're stopping hover on this size
+      if (this.hoveredSize === size && !this.isSelected(size)) {
+        this.hoveredSize = null;
+        // Reset to current scale
+        this.conversionIndex = this.scaleOrder.indexOf(this.currentScale);
+        if (this.conversionInterval) {
+          clearInterval(this.conversionInterval);
+          this.conversionInterval = null;
+        }
       }
     },
-    startSelectedCycle(size) {
-      if (this.debug) console.log('Starting selected cycle for size:', size);
-      
-      // Clear any existing intervals
-      this.clearSelectedInterval();
-      this.clearConversionInterval();
-      
-      // Set initial state
-      this.currentConversionIndex = 0;
-      this.currentScale = this.scaleOrder[0];
-      
-      // Start new interval for selected size
-      this.selectedInterval = setInterval(() => {
-        this.currentConversionIndex = (this.currentConversionIndex + 1) % this.scaleOrder.length;
-        this.currentScale = this.scaleOrder[this.currentConversionIndex];
+    getCurrentDisplay(size) {
+      // If size is selected or being hovered, show cycling conversions
+      if (this.isSelected(size) || this.hoveredSize === size) {
+        const conversions = this.getConversions(size);
+        const scale = this.scaleOrder[this.conversionIndex];
         
-        if (this.debug) console.log('Selected interval tick:', this.currentScale);
-      }, 2000);
+        if (scale && conversions && scale in conversions) {
+          const value = conversions[scale];
+          return `${scale}: ${value}`;
+        }
+      }
+      
+      // Otherwise show current scale value
+      return this.getConversionValue(size);
     },
     selectSize(size) {
-      if (this.debug) console.log('selectSize called for size:', size);
-      this.$emit('update:selectedSize', size);
-    },
-    clearConversionInterval() {
-      if (this.conversionInterval) {
-        if (this.debug) console.log('Clearing hover interval');
-        clearInterval(this.conversionInterval);
-        this.conversionInterval = null;
+      // If clicking the same size, deselect it
+      if (this.isSelected(size)) {
+        this.$emit('update:selectedSize', null);
+        // Clear conversion cycling
+        this.stopConversions(size);
+      } else {
+        this.$emit('update:selectedSize', size);
+        // Start cycling conversions for selected size
+        this.startConversions(size);
       }
-    },
-    clearSelectedInterval() {
-      if (this.selectedInterval) {
-        if (this.debug) console.log('Clearing selected interval');
-        clearInterval(this.selectedInterval);
-        this.selectedInterval = null;
-      }
-    },
-    resetConversionState() {
-      if (this.debug) console.log('Resetting conversion state');
-      this.hoveredSize = null;
-      this.currentScale = 'US';
-      this.currentConversionIndex = 0;
     },
     isSelected(size) {
       return String(this.selectedSize) === String(size);
     },
-    getConversionValue(size) {
-      const sizeType = this.product.sizeType || 'men-regular';
-      const sizeKey = `US-${String(size)}`;
-      const conversions = this.$store.state.products.standardSizes[sizeType]?.sizeConversions[sizeKey];
-      
-      if (!conversions) return size;
-      
-      switch (this.currentScale) {
-        case 'US':
-          return size;
-        case 'UK':
-        case 'EU':
-        case 'CM':
-        case 'IN':
-          return conversions[this.currentScale] || size;
-        default:
-          return size;
-      }
-    },
     getConversions(size) {
-      const sizeType = this.product.sizeType || 'men-regular';
-      const sizeKey = `US-${String(size)}`;
-      const conversions = this.$store.state.products.standardSizes[sizeType]?.sizeConversions[sizeKey] || {};
-      
-      return {
-        US: String(size),
-        ...conversions
-      };
+      const conversions = this.getSizeConversions(size, this.product);
+      return conversions || { EU: size };
+    },
+    getConversionValue(size) {
+      const conversions = this.getConversions(size);
+      // If we have conversions and the target scale exists in them, use that
+      if (conversions && this.currentScale in conversions) {
+        const result = conversions[this.currentScale];
+        return result;
+      }
+      // If we're in EU scale, return as number, otherwise as string
+      return this.currentScale === 'EU' ? Number(size) : String(size);
     },
     toggleSizeGuide() {
       this.showSizeGuide = !this.showSizeGuide;
     }
   },
   beforeUnmount() {
-    this.clearConversionInterval();
-    this.clearSelectedInterval();
+    if (this.conversionInterval) {
+      clearInterval(this.conversionInterval);
+    }
+    // Clean up any remaining state
+    this.showSizeGuide = false;
+    this.hoveredSize = null;
   }
 };
 </script>
@@ -270,7 +206,7 @@ export default {
 }
 
 .size-button {
-  position: relative;
+  margin: 0.25rem;
   padding: 0.4rem;
   border: 1px solid #e2e8f0;
   border-radius: 0.375rem;
@@ -282,7 +218,9 @@ export default {
   align-items: center;
   justify-content: center;
   text-align: center;
-  width: 4.5em;
+  min-width: 4.5em;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
 .size-button:hover:not(.active) {
@@ -316,13 +254,30 @@ export default {
 }
 
 .size-text {
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  position: relative;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  letter-spacing: -0.01em;
+}
+
+.conversions {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.conversions div {
+  padding: 0.2rem 0;
 }
 
 .fade-enter-active,
@@ -419,6 +374,12 @@ export default {
 
 .size-chart tr:hover {
   background-color: #eff6ff;
+}
+
+.size-type {
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: #4b5563;
 }
 
 .measurement-tips {

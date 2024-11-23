@@ -13,17 +13,42 @@ export default {
           IN: [9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2, 11.4, 11.6, 11.8]
         },
         sizeConversions: {
-          "US-7": { UK: "6", EU: "40", CM: "25", IN: "9.8" },
-          "US-7.5": { UK: "6.5", EU: "40.5", CM: "25.5", IN: "10" },
-          "US-8": { UK: "7", EU: "41", CM: "26", IN: "10.2" },
-          "US-8.5": { UK: "7.5", EU: "42", CM: "26.5", IN: "10.4" },
-          "US-9": { UK: "8", EU: "42.5", CM: "27", IN: "10.6" },
-          "US-9.5": { UK: "8.5", EU: "43", CM: "27.5", IN: "10.8" },
-          "US-10": { UK: "9", EU: "44", CM: "28", IN: "11" },
-          "US-10.5": { UK: "9.5", EU: "44.5", CM: "28.5", IN: "11.2" },
-          "US-11": { UK: "10", EU: "45", CM: "29", IN: "11.4" },
-          "US-11.5": { UK: "10.5", EU: "45.5", CM: "29.5", IN: "11.6" },
-          "US-12": { UK: "11", EU: "46", CM: "30", IN: "11.8" }
+          // EU-based conversions
+          "EU-40": { US: "7", UK: "6", CM: "25", IN: "9.8" },
+          "EU-40.5": { US: "7.5", UK: "6.5", CM: "25.5", IN: "10" },
+          "EU-41": { US: "8", UK: "7", CM: "26", IN: "10.2" },
+          "EU-42": { US: "8.5", UK: "7.5", CM: "26.5", IN: "10.4" },
+          "EU-42.5": { US: "9", UK: "8", CM: "27", IN: "10.6" },
+          "EU-43": { US: "9.5", UK: "8.5", CM: "27.5", IN: "10.8" },
+          "EU-44": { US: "10", UK: "9", CM: "28", IN: "11" },
+          "EU-44.5": { US: "10.5", UK: "9.5", CM: "28.5", IN: "11.2" },
+          "EU-45": { US: "11", UK: "10", CM: "29", IN: "11.4" },
+          "EU-45.5": { US: "11.5", UK: "10.5", CM: "29.5", IN: "11.6" },
+          "EU-46": { US: "12", UK: "11", CM: "30", IN: "11.8" },
+          // US-based conversions
+          "US-7": { EU: "40", UK: "6", CM: "25", IN: "9.8" },
+          "US-7.5": { EU: "40.5", UK: "6.5", CM: "25.5", IN: "10" },
+          "US-8": { EU: "41", UK: "7", CM: "26", IN: "10.2" },
+          "US-8.5": { EU: "42", UK: "7.5", CM: "26.5", IN: "10.4" },
+          "US-9": { EU: "42.5", UK: "8", CM: "27", IN: "10.6" },
+          "US-9.5": { EU: "43", UK: "8.5", CM: "27.5", IN: "10.8" },
+          "US-10": { EU: "44", UK: "9", CM: "28", IN: "11" },
+          "US-10.5": { EU: "44.5", UK: "9.5", CM: "28.5", IN: "11.2" },
+          "US-11": { EU: "45", UK: "10", CM: "29", IN: "11.4" },
+          "US-11.5": { EU: "45.5", UK: "10.5", CM: "29.5", IN: "11.6" },
+          "US-12": { EU: "46", UK: "11", CM: "30", IN: "11.8" },
+          // UK-based conversions
+          "UK-6": { EU: "40", US: "7", CM: "25", IN: "9.8" },
+          "UK-6.5": { EU: "40.5", US: "7.5", CM: "25.5", IN: "10" },
+          "UK-7": { EU: "41", US: "8", CM: "26", IN: "10.2" },
+          "UK-7.5": { EU: "42", US: "8.5", CM: "26.5", IN: "10.4" },
+          "UK-8": { EU: "42.5", US: "9", CM: "27", IN: "10.6" },
+          "UK-8.5": { EU: "43", US: "9.5", CM: "27.5", IN: "10.8" },
+          "UK-9": { EU: "44", US: "10", CM: "28", IN: "11" },
+          "UK-9.5": { EU: "44.5", US: "10.5", CM: "28.5", IN: "11.2" },
+          "UK-10": { EU: "45", US: "11", CM: "29", IN: "11.4" },
+          "UK-10.5": { EU: "45.5", US: "11.5", CM: "29.5", IN: "11.6" },
+          "UK-11": { EU: "46", US: "12", CM: "30", IN: "11.8" }
         }
       },
       "men-small": {
@@ -32,20 +57,21 @@ export default {
           UK: [5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10],
           EU: [38, 38.5, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5],
           CM: [24, 24.5, 25, 25.5, 26, 26.5, 27, 27.5, 28, 28.5, 29],
-          IN: [9.2, 9.4, 9.6, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2]
+          IN: [9.4, 9.6, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2, 11.4]
         },
         sizeConversions: {
-          "US-6": { UK: "5", EU: "38", CM: "24", IN: "9.2" },
-          "US-6.5": { UK: "5.5", EU: "38.5", CM: "24.5", IN: "9.4" },
-          "US-7": { UK: "6", EU: "39", CM: "25", IN: "9.6" },
-          "US-7.5": { UK: "6.5", EU: "40", CM: "25.5", IN: "9.8" },
-          "US-8": { UK: "7", EU: "40.5", CM: "26", IN: "10" },
-          "US-8.5": { UK: "7.5", EU: "41", CM: "26.5", IN: "10.2" },
-          "US-9": { UK: "8", EU: "42", CM: "27", IN: "10.4" },
-          "US-9.5": { UK: "8.5", EU: "42.5", CM: "27.5", IN: "10.6" },
-          "US-10": { UK: "9", EU: "43", CM: "28", IN: "10.8" },
-          "US-10.5": { UK: "9.5", EU: "44", CM: "28.5", IN: "11" },
-          "US-11": { UK: "10", EU: "44.5", CM: "29", IN: "11.2" }
+          // EU-based conversions
+          "EU-38": { US: "6", UK: "5", CM: "24", IN: "9.4" },
+          "EU-38.5": { US: "6.5", UK: "5.5", CM: "24.5", IN: "9.6" },
+          "EU-39": { US: "7", UK: "6", CM: "25", IN: "9.8" },
+          "EU-40": { US: "7.5", UK: "6.5", CM: "25.5", IN: "10" },
+          "EU-40.5": { US: "8", UK: "7", CM: "26", IN: "10.2" },
+          "EU-41": { US: "8.5", UK: "7.5", CM: "26.5", IN: "10.4" },
+          "EU-42": { US: "9", UK: "8", CM: "27", IN: "10.6" },
+          "EU-42.5": { US: "9.5", UK: "8.5", CM: "27.5", IN: "10.8" },
+          "EU-43": { US: "10", UK: "9", CM: "28", IN: "11" },
+          "EU-44": { US: "10.5", UK: "9.5", CM: "28.5", IN: "11.2" },
+          "EU-44.5": { US: "11", UK: "10", CM: "29", IN: "11.4" }
         }
       },
       "women-regular": {
@@ -57,19 +83,20 @@ export default {
           IN: [8.7, 8.9, 9.1, 9.3, 9.4, 9.6, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 11]
         },
         sizeConversions: {
-          "US-5": { UK: "2.5", EU: "35", CM: "22", IN: "8.7" },
-          "US-5.5": { UK: "3", EU: "35.5", CM: "22.5", IN: "8.9" },
-          "US-6": { UK: "3.5", EU: "36", CM: "23", IN: "9.1" },
-          "US-6.5": { UK: "4", EU: "37", CM: "23.5", IN: "9.3" },
-          "US-7": { UK: "4.5", EU: "37.5", CM: "24", IN: "9.4" },
-          "US-7.5": { UK: "5", EU: "38", CM: "24.5", IN: "9.6" },
-          "US-8": { UK: "5.5", EU: "38.5", CM: "25", IN: "9.8" },
-          "US-8.5": { UK: "6", EU: "39", CM: "25.5", IN: "10" },
-          "US-9": { UK: "6.5", EU: "40", CM: "26", IN: "10.2" },
-          "US-9.5": { UK: "7", EU: "40.5", CM: "26.5", IN: "10.4" },
-          "US-10": { UK: "7.5", EU: "41", CM: "27", IN: "10.6" },
-          "US-10.5": { UK: "8", EU: "42", CM: "27.5", IN: "10.8" },
-          "US-11": { UK: "8.5", EU: "42.5", CM: "28", IN: "11" }
+          // EU-based conversions
+          "EU-35": { US: "5", UK: "2.5", CM: "22", IN: "8.7" },
+          "EU-35.5": { US: "5.5", UK: "3", CM: "22.5", IN: "8.9" },
+          "EU-36": { US: "6", UK: "3.5", CM: "23", IN: "9.1" },
+          "EU-37": { US: "6.5", UK: "4", CM: "23.5", IN: "9.3" },
+          "EU-37.5": { US: "7", UK: "4.5", CM: "24", IN: "9.4" },
+          "EU-38": { US: "7.5", UK: "5", CM: "24.5", IN: "9.6" },
+          "EU-38.5": { US: "8", UK: "5.5", CM: "25", IN: "9.8" },
+          "EU-39": { US: "8.5", UK: "6", CM: "25.5", IN: "10" },
+          "EU-40": { US: "9", UK: "6.5", CM: "26", IN: "10.2" },
+          "EU-40.5": { US: "9.5", UK: "7", CM: "26.5", IN: "10.4" },
+          "EU-41": { US: "10", UK: "7.5", CM: "27", IN: "10.6" },
+          "EU-42": { US: "10.5", UK: "8", CM: "27.5", IN: "10.8" },
+          "EU-42.5": { US: "11", UK: "8.5", CM: "28", IN: "11" }
         }
       },
       "women-small": {
@@ -81,17 +108,18 @@ export default {
           IN: [8.3, 8.5, 8.7, 8.9, 9.1, 9.3, 9.4, 9.6, 9.8, 10, 10.2]
         },
         sizeConversions: {
-          "US-4": { UK: "1.5", EU: "33.5", CM: "21", IN: "8.3" },
-          "US-4.5": { UK: "2", EU: "34", CM: "21.5", IN: "8.5" },
-          "US-5": { UK: "2.5", EU: "35", CM: "22", IN: "8.7" },
-          "US-5.5": { UK: "3", EU: "35.5", CM: "22.5", IN: "8.9" },
-          "US-6": { UK: "3.5", EU: "36", CM: "23", IN: "9.1" },
-          "US-6.5": { UK: "4", EU: "37", CM: "23.5", IN: "9.3" },
-          "US-7": { UK: "4.5", EU: "37.5", CM: "24", IN: "9.4" },
-          "US-7.5": { UK: "5", EU: "38", CM: "24.5", IN: "9.6" },
-          "US-8": { UK: "5.5", EU: "38.5", CM: "25", IN: "9.8" },
-          "US-8.5": { UK: "6", EU: "39", CM: "25.5", IN: "10" },
-          "US-9": { UK: "6.5", EU: "40", CM: "26", IN: "10.2" }
+          // EU-based conversions
+          "EU-33.5": { US: "4", UK: "1.5", CM: "21", IN: "8.3" },
+          "EU-34": { US: "4.5", UK: "2", CM: "21.5", IN: "8.5" },
+          "EU-35": { US: "5", UK: "2.5", CM: "22", IN: "8.7" },
+          "EU-35.5": { US: "5.5", UK: "3", CM: "22.5", IN: "8.9" },
+          "EU-36": { US: "6", UK: "3.5", CM: "23", IN: "9.1" },
+          "EU-37": { US: "6.5", UK: "4", CM: "23.5", IN: "9.3" },
+          "EU-37.5": { US: "7", UK: "4.5", CM: "24", IN: "9.4" },
+          "EU-38": { US: "7.5", UK: "5", CM: "24.5", IN: "9.6" },
+          "EU-38.5": { US: "8", UK: "5.5", CM: "25", IN: "9.8" },
+          "EU-39": { US: "8.5", UK: "6", CM: "25.5", IN: "10" },
+          "EU-40": { US: "9", UK: "6.5", CM: "26", IN: "10.2" }
         }
       }
     }
@@ -125,6 +153,8 @@ export default {
             ],
             price: 129.99,
             description: 'The Nike Air Max 90 stays true to its OG running roots with the iconic Waffle outsole, stitched overlays and classic TPU accents. Fresh colors give a modern look while Max Air cushioning adds comfort to your journey.',
+            brand: 'Nike',
+            model: 'Air Max 90',
             sizeType: 'men-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
@@ -148,6 +178,8 @@ export default {
             ],
             price: 99.99,
             description: 'The iconic Air Force 1, a timeless classic that never goes out of style.',
+            brand: 'Nike',
+            model: 'Air Force 1',
             sizeType: 'men-small',
             material: 'Leather and synthetic upper',
             style: 'Classic'
@@ -171,6 +203,8 @@ export default {
             ],
             price: 109.99,
             description: 'Originally made for the hardwood, the Nike Dunk has become a streetwear icon.',
+            brand: 'Nike',
+            model: 'Dunk',
             sizeType: 'men-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
@@ -194,6 +228,8 @@ export default {
             ],
             price: 149.99,
             description: 'High-performance running shoes designed for comfort and speed. Features ZoomX foam and a full-length carbon fiber plate for exceptional energy return.',
+            brand: 'Nike',
+            model: 'ZoomX Vaporfly',
             sizeType: 'men-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
@@ -217,6 +253,8 @@ export default {
             ],
             price: 159.99,
             description: 'Professional-grade football boots with innovative studs and enhanced touch control for optimal performance on the field.',
+            brand: 'Nike',
+            model: 'Phantom GX Elite',
             sizeType: 'men-small',
             material: 'Leather and synthetic upper',
             style: 'Classic'
@@ -240,6 +278,8 @@ export default {
             ],
             price: 169.99,
             description: 'Basketball shoes engineered for explosive performance on the court, featuring Zoom Air units and durable traction pattern.',
+            brand: 'Nike',
+            model: 'LeBron XX',
             sizeType: 'men-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
@@ -266,8 +306,84 @@ export default {
   getters: {
     allProducts: state => state.products,
     product: state => state.product,
-    getProductById: state => id => state.products.find(product => product.id === id),
-    getProductSizes: state => product => state.standardSizes[product.sizeType].sizes,
-    getProductSizeConversions: state => product => state.standardSizes[product.sizeType].sizeConversions
+    getProductById: (state) => (id) => {
+      const product = state.products.find(p => p.id === parseInt(id));
+      return product || {
+        id: 0,
+        name: 'Product Not Found',
+        price: 0,
+        description: 'This product could not be found.',
+        material: 'N/A',
+        style: 'N/A',
+        category: 'men',
+        small: false,
+        images: ['/default-shoe.jpg'],
+        sizeType: 'men-regular',  // Add default sizeType
+        sizes: [],
+        sizeConversions: {}
+      };
+    },
+    getProductSizes: (state) => (product) => {
+      if (!product) return {};
+      return state.standardSizes[product.sizeType]?.sizes || {};
+    },
+    getProductSizeConversions: (state) => (product) => {
+      if (!product) return {};
+      return state.standardSizes[product.sizeType]?.sizeConversions || {};
+    },
+    getSizeInScale: (state) => (product, size, fromScale, toScale) => {
+      if (!product || !size || !fromScale || !toScale) return null;
+      
+      const conversions = state.standardSizes[product.sizeType]?.sizeConversions;
+      if (!conversions) return null;
+
+      const key = `${fromScale}-${size}`;
+      return conversions[key]?.[toScale] || null;
+    },
+    getAvailableScales: state => {
+      return ['EU', 'US', 'UK', 'CM', 'IN'];
+    },
+    getSizeConversions: state => (size, product = state.product) => {
+      try {
+        if (!product?.sizeType) {
+          return null;
+        }
+        
+        const sizeData = state.standardSizes[product.sizeType];
+        if (!sizeData?.sizeConversions) return null;
+
+        // Find which scale this size belongs to
+        let sourceScale = null;
+        const sizeNum = Number(size);
+        for (const [scale, sizes] of Object.entries(sizeData.sizes)) {
+          if (scale === 'EU' ? sizes.includes(sizeNum) : sizes.includes(size)) {
+            sourceScale = scale;
+            break;
+          }
+        }
+
+        if (!sourceScale) {
+          return null;
+        }
+
+        // Convert size to string for conversion lookup
+        const key = `${sourceScale}-${String(size)}`;
+        if (key in sizeData.sizeConversions) {
+          // Keep EU as numbers, others as strings
+          const conversions = {};
+          for (const [scale, val] of Object.entries(sizeData.sizeConversions[key])) {
+            conversions[scale] = scale === 'EU' ? Number(val) : val;
+          }
+          // Use number for EU, string for others in source value
+          const sourceValue = sourceScale === 'EU' ? sizeNum : String(size);
+          const result = { [sourceScale]: sourceValue, ...conversions };
+          return result;
+        }
+        
+        return null;
+      } catch (error) {
+        return null;
+      }
+    }
   }
 };
