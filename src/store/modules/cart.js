@@ -25,18 +25,16 @@ export default {
       
       state.totalPrice = Number((state.totalPrice + (product.price * (product.quantity || 1))).toFixed(2));
     },
-    softDeleteFromCart(state, { id, selectedSize }) {
+    softDeleteFromCart(state, { id, selectedSize, expiryTime }) {
       const itemIndex = state.items.findIndex(
         (item) => item.id === id && item.selectedSize === selectedSize
       );
       
       if (itemIndex !== -1) {
-        const EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
-        const now = Date.now();
         const removedItem = { 
           ...state.items[itemIndex],
-          removedAt: now,
-          expiryTime: now + EXPIRY_TIME
+          removedAt: Date.now(),
+          expiryTime: expiryTime
         };
         state.totalPrice = Number((state.totalPrice - removedItem.price * removedItem.quantity).toFixed(2));
         // Ensure totalPrice never goes below 0
@@ -123,22 +121,43 @@ export default {
     }
   },
   actions: {
-    addToCart({ commit }, product) {
-      commit('addToCart', product);
+    addToCart({ commit, rootState }, product) {
+      // For non-authenticated users, we'll use default preferences
+      const userPrefs = rootState.user.isAuthenticated 
+        ? rootState.user.userInfo?.preferences 
+        : { sizeScale: 'EU' };  // Default to EU sizing for non-authenticated users
+      
+      commit('addToCart', {
+        ...product,
+        preferences: userPrefs
+      });
     },
-    addItemToCart({ commit, rootGetters }, { id, selectedSize, quantity }) {
-      // Get product from products store
+    addItemToCart({ commit, rootState, rootGetters }, { id, selectedSize, quantity }) {
       const product = rootGetters['products/getProductById'](id);
       if (product) {
+        const userPrefs = rootState.user.isAuthenticated 
+          ? rootState.user.userInfo?.preferences 
+          : { sizeScale: 'EU' };
+
         commit('addToCart', {
           ...product,
           selectedSize,
-          quantity
+          quantity,
+          preferences: userPrefs
         });
       }
     },
-    softDeleteFromCart({ commit }, { id, selectedSize }) {
-      commit('softDeleteFromCart', { id, selectedSize });
+    softDeleteFromCart({ commit, rootState }, { id, selectedSize }) {
+      // Use a shorter expiry time for non-authenticated users
+      const EXPIRY_TIME = rootState.user.isAuthenticated 
+        ? 5 * 60 * 1000  // 5 minutes for authenticated users
+        : 2 * 60 * 1000; // 2 minutes for non-authenticated users
+
+      commit('softDeleteFromCart', { 
+        id, 
+        selectedSize,
+        expiryTime: Date.now() + EXPIRY_TIME 
+      });
     },
     restoreToCart({ commit }, { id, selectedSize }) {
       commit('restoreToCart', { id, selectedSize });
@@ -150,10 +169,17 @@ export default {
       commit('clearCart');
     },
     updateCartItemQuantity({ commit }, { id, selectedSize, quantity }) {
-      commit('updateCartItemQuantity', { id, selectedSize, quantity });
+      // Add a reasonable maximum quantity limit for non-authenticated users
+      const MAX_QUANTITY = 10;
+      const safeQuantity = Math.min(quantity, MAX_QUANTITY);
+      
+      commit('updateCartItemQuantity', { 
+        id, 
+        selectedSize, 
+        quantity: safeQuantity 
+      });
     },
     async changeCartItemSize({ commit, state }, { id, oldSize, newSize, quantity }) {
-      // Find the item to be changed
       const itemIndex = state.items.findIndex(
         (item) => item.id === id && item.selectedSize === oldSize
       );
@@ -161,27 +187,37 @@ export default {
       if (itemIndex !== -1) {
         const item = { ...state.items[itemIndex] };
         
-        // Remove the old size
         commit('softDeleteFromCart', { id, selectedSize: oldSize });
         
-        // Add the new size immediately with preserved quantity
         commit('addToCart', { 
           ...item, 
           selectedSize: newSize,
-          quantity: quantity || item.quantity // Use passed quantity or preserve existing
+          quantity: quantity || item.quantity
         });
       }
     },
     checkExpiredItems({ commit }) {
       commit('removeExpiredItems');
     },
-    addToCartSimple({ commit }, item) {
+    addToCartSimple({ commit, rootState }, item) {
+      if (!rootState.user.isAuthenticated) {
+        console.warn('User must be logged in to perform cart operations');
+        return;
+      }
       commit('addItem', item);
     },
-    removeFromCartSimple({ commit }, itemId) {
+    removeFromCartSimple({ commit, rootState }, itemId) {
+      if (!rootState.user.isAuthenticated) {
+        console.warn('User must be logged in to perform cart operations');
+        return;
+      }
       commit('removeItem', itemId);
     },
-    clearCartSimple({ commit }) {
+    clearCartSimple({ commit, rootState }) {
+      if (!rootState.user.isAuthenticated) {
+        console.warn('User must be logged in to perform cart operations');
+        return;
+      }
       commit('clearCartSimple');
     }
   },
