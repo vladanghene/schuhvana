@@ -62,18 +62,6 @@
                           </option>
                         </select>
                       </div>
-                      <div class="quantity-controls">
-                        <button 
-                          class="quantity-btn" 
-                          @click="updateQuantity(item.id, item.selectedSize, item.quantity - 1)" 
-                          :disabled="item.quantity <= 1"
-                        >−</button>
-                        <span class="quantity">{{ item.quantity }}</span>
-                        <button 
-                          class="quantity-btn" 
-                          @click="updateQuantity(item.id, item.selectedSize, item.quantity + 1)"
-                        >+</button>
-                      </div>
                       <button 
                         @click="softDeleteFromCart({ id: item.id, selectedSize: item.selectedSize })" 
                         class="remove-btn"
@@ -128,21 +116,52 @@
         </div>
 
         <!-- Recently Removed Items -->
-        <div v-if="removedItems.length > 0" class="removed-section">
+        <div v-if="groupedRemovedItems.length > 0" class="removed-section">
           <h3>Recently Removed</h3>
           <TransitionGroup name="removed-item" tag="div" class="removed-items">
-            <div v-for="item in removedItems" :key="`${item.id}-${item.selectedSize}-removed`" class="removed-item">
-              <div class="removed-item-content">
-                <img :src="getImageUrl(item.image)" :alt="item.name" class="removed-thumb">
-                <div class="removed-details">
-                  <h4>{{ item.name }}</h4>
-                  <p>Size: {{ getDisplaySize(item) }}</p>
+            <div v-for="group in groupedRemovedItems" :key="group.id" class="removed-item">
+              <div class="removed-sizes">
+                <div 
+                  v-for="(size, index) in group.sizes" 
+                  :key="size.size" 
+                  class="removed-size-item elevation-1"
+                  :class="{
+                    'splitting': getCardState(group.id, size.size).isSplitting,
+                    'isRestacking': getCardState(group.id, size.size).isRestacking,
+                    'switched': getCardState(group.id, size.size).isSwitched
+                  }"
+                  @mouseenter="startSplit(group.id, size.size)"
+                  @mouseleave="endSplit(group.id, size.size)"
+                >
+                  <div class="removed-item-stack">
+                    <div class="product-card">
+                      <img :src="getImageUrl(group.image)" :alt="group.name" class="removed-thumb">
+                      <div class="product-overlay">
+                        <h4>{{ group.name }}</h4>
+                      </div>
+                    </div>
+                    <div class="size-card">
+                      <div class="size-info">
+                        <span class="text-caption text-medium-emphasis">Size</span>
+                        <span class="text-h5 text-medium-emphasis">{{ getDisplaySize({ id: group.id, selectedSize: size.size }) }}</span>
+                      </div>
+                      <v-btn
+                        :color="success"
+                        @click="handleRestore($event, { id: group.id, selectedSize: size.size, quantity: size.quantity })"
+                        class="restore-size-btn"
+                        variant="text"
+                        size="small"
+                        elevation="0"
+                      >
+                        <span class="restore-text">Restore</span>
+                      </v-btn>
+                      <div class="time-remaining text-caption">
+                        {{ getTimeRemaining({ id: group.id, selectedSize: size.size, expiryTime: size.expiryTime }) }}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="time-remaining">{{ getTimeRemaining(item) }}</div>
               </div>
-              <button @click="handleRestore($event, item)" class="restore-btn">
-                Restore to Cart
-              </button>
             </div>
           </TransitionGroup>
         </div>
@@ -182,8 +201,46 @@ export default {
     const mousePosition = reactive({ x: 0, y: 0 });
     const timeCache = reactive(new Map());
     const now = ref(Date.now());
+    const cardStates = reactive(new Map());
     const timer = ref(null);
-    const updateInterval = 1000; // 1 second
+    const updateInterval = 1000;
+
+    const getCardState = (id, size) => {
+      const key = `${id}-${size}`;
+      if (!cardStates.has(key)) {
+        cardStates.set(key, reactive({
+          isSplitting: false,
+          isRestacking: false,
+          isSwitched: false
+        }));
+      }
+      return cardStates.get(key);
+    };
+
+    const startSplit = (id, size) => {
+      const state = getCardState(id, size);
+      state.isSplitting = true;
+      state.isRestacking = false;
+      
+      // After split animation, start restack
+      setTimeout(() => {
+        state.isRestacking = true;
+        state.isSwitched = true;
+      }, 300);
+    };
+
+    const endSplit = (id, size) => {
+      const state = getCardState(id, size);
+      // Start the reverse animation
+      state.isRestacking = false;
+      state.isSplitting = true;
+      
+      // After cards split again, reset to original position
+      setTimeout(() => {
+        state.isSplitting = false;
+        state.isSwitched = false;
+      }, 300);
+    };
 
     const updateTimeCache = () => {
       now.value = Date.now();
@@ -239,7 +296,12 @@ export default {
       timeCache,
       now,
       updateTimeCache,
-      initializeNewSelection
+      initializeNewSelection,
+      getCardState,
+      startSplit,
+      endSplit,
+      timer,
+      updateInterval
     };
   },
   computed: {
@@ -341,7 +403,28 @@ export default {
         
         return result;
       };
-    }
+    },
+    groupedRemovedItems() {
+      const grouped = {};
+      this.removedItems.forEach(item => {
+        if (!grouped[item.id]) {
+          grouped[item.id] = {
+            id: item.id,
+            name: item.name,
+            image: item.image,
+            sizes: []
+          };
+        }
+        grouped[item.id].sizes.push({
+          size: item.selectedSize,
+          expiryTime: item.expiryTime,
+          quantity: item.quantity,
+          isSplitting: false,
+          isSwitched: false
+        });
+      });
+      return Object.values(grouped);
+    },
   },
   methods: {
     ...mapActions('cart', [
@@ -355,37 +438,17 @@ export default {
     getImageUrl(image) {
       return getImageUrl(image || DEFAULT_SHOE_IMAGE);
     },
-    updateQuantity(id, selectedSize, newQuantity) {
-      if (newQuantity > 0) {
-        this.updateCartItemQuantity({ id, selectedSize, quantity: newQuantity });
+    async handleRestore(event, { id, selectedSize, quantity }) {
+      if (event) {
+        const rect = event.target.getBoundingClientRect();
+        this.mousePosition.x = rect.left + rect.width / 2;
+        this.mousePosition.y = rect.top;
       }
-    },
-    handleRestore(event, item) {
-      this.mousePosition.x = event.clientX;
-      this.mousePosition.y = event.clientY;
+      
+      await this.restoreToCart({ id, selectedSize });
+      await this.removeFromRemoved({ id, selectedSize }); // Explicitly remove from removedItems
       this.showingConfetti = true;
       
-      // Initialize select boxes for the restored item
-      const key = `${item.id}-${item.selectedSize}`;
-      this.selectedSizes[key] = '';
-      const product = this.getProductById(item.id);
-      const currentScale = this.userPreferredScale;
-      const conversions = this.getSizeConversions(item.selectedSize, product);
-      this.selectedSizesChange[key] = conversions ? conversions[currentScale] || item.selectedSize : item.selectedSize;
-      
-      // Restore item
-      this.restoreToCart({ 
-        id: item.id, 
-        selectedSize: item.selectedSize
-      });
-
-      // Remove item from removedItems list
-      this.removeFromRemoved({
-        id: item.id,
-        selectedSize: item.selectedSize
-      });
-      
-      // Reset confetti after animation
       setTimeout(() => {
         this.showingConfetti = false;
       }, 2000);
@@ -540,7 +603,7 @@ export default {
   padding: 0.75rem;
   color: #6c757d;
   background: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 6px;
   grid-column: span 2;
 }
 
@@ -600,7 +663,7 @@ export default {
 
 .cart-item:hover {
   border-color: #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .cart-item .item-image {
@@ -608,7 +671,7 @@ export default {
   height: 200px;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .cart-item .item-image img {
@@ -660,16 +723,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.quantity-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #f9fafb;
-  padding: 0.25rem;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
 }
 
 .remove-btn {
@@ -735,101 +788,212 @@ export default {
 .removed-section {
   margin-top: 2rem;
   padding: 1.5rem;
-  border: 2px dashed rgba(156, 163, 175, 0.5);
-  border-radius: 8px;
+  border: 2px dashed rgba(var(--v-theme-on-surface), 0.12);
+  border-radius: 12px;
+  background: rgba(var(--v-theme-surface), 0.4);
 }
 
 .removed-section h3 {
-  color: #374151;
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 500;
-  margin-bottom: 1.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: rgba(var(--v-theme-on-surface), 0.87);
+  margin-bottom: 1rem;
 }
 
 .removed-items {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .removed-item {
-  position: relative;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  overflow: hidden;
-  transition: all 0.2s ease;
-  border: 1px solid #f3f4f6;
+  border-radius: 12px;
   padding: 1.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.removed-item:hover {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  border-color: #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
 }
 
 .removed-item-content {
   display: flex;
-  align-items: center;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.product-info {
+  display: flex;
   gap: 1.5rem;
-  flex: 1;
+  align-items: center;
+  min-width: 300px;
+  position: relative;
 }
 
 .removed-thumb {
-  width: 100px;
-  height: 100px;
-  border-radius: 6px;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
   flex-shrink: 0;
 }
 
-.removed-details {
+.product-card {
+  z-index: 2;
+  transform: translateX(0) translateZ(10px);
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.product-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.product-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+.product-overlay h4 {
+  color: white;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-align: left;
+  line-height: 0.1em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+
+.removed-sizes {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.removed-item {
+  margin-bottom: 1.5rem;
+}
+
+.removed-size-item {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin-right: 1rem;
+  perspective: 1000px;
+}
+
+.removed-item-stack {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  transform-style: preserve-3d;
+}
+
+.product-card,
+.size-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 140px;
+  height: 140px;
+  border-radius: 4px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  backface-visibility: visible;
+}
+
+.product-card {
+  transform: translateX(0) translateZ(10px);
+  z-index: 2;
+}
+
+.size-card {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  transform: translateX(0) translateZ(-10px);
+  z-index: 1;
 }
 
-.removed-item .restore-btn {
-  padding: 0.5rem 1rem;
-  background: #16a34a;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.875rem;
-  font-weight: 500;
+.removed-size-item.splitting:not(.isRestacking) .product-card {
+  transform: translateX(-80px) rotate(-5deg) translateZ(10px);
+  z-index: 2;
 }
 
-.removed-item .restore-btn:hover {
-  background: #22c55e;
-  transform: translateY(-1px);
+.removed-size-item.splitting:not(.isRestacking) .size-card {
+  transform: translateX(80px) rotate(5deg) translateZ(-10px);
+  z-index: 1;
 }
 
-.removed-item .restore-btn:disabled {
-  background: #e5e7eb;
-  color: #9ca3af;
-  cursor: not-allowed;
-  transform: none;
+.removed-size-item.splitting.isRestacking .product-card {
+  transform: translateX(0) translateZ(-10px);
+  z-index: 1;
+}
+
+.removed-size-item.splitting.isRestacking .size-card {
+  transform: translateX(0) translateZ(10px);
+  z-index: 2;
+}
+
+.removed-size-item.switched:not(.splitting) .product-card {
+  transform: translateX(0) translateZ(-10px);
+  z-index: 1;
+}
+
+.removed-size-item.switched:not(.splitting) .size-card {
+  transform: translateX(0) translateZ(10px);
+  z-index: 2;
+}
+
+.size-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.size-info .text-caption {
+  opacity: 0.7;
+  margin-bottom: -0.25rem;
+  font-size: 0.75rem;
+}
+
+.size-info .text-h5 {
+  line-height: 1;
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.restore-size-btn {
+  margin: 0.25rem 0;
+  opacity: 0.6;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  scale: 0.9;
 }
 
 .time-remaining {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.03);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0 8px 0 8px;
-  font-size: 0.75rem;
-  color: #4b5563;
-  font-weight: 500;
-  box-shadow: inset 0px -2px 2px rgba(255, 255, 255, 0.8),
-              inset 0px 2px 2px rgba(0, 0, 0, 0.03),
-              0px 2px 4px rgba(0, 0, 0, 0.05);
+  font-size: 0.7rem;
+  line-height: 1;
 }
 
 .checkout-button {
@@ -958,11 +1122,6 @@ export default {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
-  }
-
-  .quantity-controls {
-    width: 100%;
-    justify-content: center;
   }
 
   .remove-btn {
