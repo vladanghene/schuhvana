@@ -90,18 +90,20 @@ export default {
   },
   computed: {
     ...mapState('user', ['userPreferredScale']),
-    ...mapState('products', ['product']),
     ...mapGetters('products', ['getAvailableScales', 'getSizeConversions', 'getProductSizes']),
+    
     currentScale() {
-      return this.defaultScale || this.userPreferredScale || 'EU';
+      return this.userPreferredScale;
     },
+
     availableSizes() {
+      if (!this.product) return [];
       const sizes = this.getProductSizes(this.product);
-      // Always get EU sizes as base (they're numbers)
-      return sizes['EU'] || [];
+      return sizes[this.currentScale] || sizes.EU || [];
     },
+
     scaleOrder() {
-      return this.getAvailableScales;
+      return ['EU', 'US', 'UK', 'CM'];
     }
   },
   methods: {

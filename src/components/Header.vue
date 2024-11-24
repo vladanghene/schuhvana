@@ -5,9 +5,9 @@
       </div>
       <nav class="navigation">
         <router-link to="/">Home</router-link>
-        <router-link to="/men">Men</router-link>
-        <router-link to="/women">Women</router-link>
-        <router-link to="/kids">Kids</router-link>
+        <router-link to="/category/men">Men</router-link>
+        <router-link to="/category/women">Women</router-link>
+        <router-link to="/category/kids">Kids</router-link>
         <router-link to="/cart">Cart ({{ cartItemCount }})</router-link>
         <router-link v-if="!isAuthenticated" to="/login">Login</router-link>
         <router-link v-if="isAuthenticated" to="/account">My Account</router-link>

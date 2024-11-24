@@ -14,13 +14,16 @@ export default {
       
       if (item) {
         // If exact same product and size exists, increment quantity
-        item.quantity += 1;
+        item.quantity += product.quantity || 1;
       } else {
-        // If not found, add as new item
-        state.items.push({ ...product, quantity: 1 });
+        // If not found, add as new item with specified quantity or default to 1
+        state.items.push({ 
+          ...product, 
+          quantity: product.quantity || 1 
+        });
       }
       
-      state.totalPrice = Number((state.totalPrice + product.price).toFixed(2));
+      state.totalPrice = Number((state.totalPrice + (product.price * (product.quantity || 1))).toFixed(2));
     },
     softDeleteFromCart(state, { id, selectedSize }) {
       const itemIndex = state.items.findIndex(
@@ -28,9 +31,12 @@ export default {
       );
       
       if (itemIndex !== -1) {
+        const EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+        const now = Date.now();
         const removedItem = { 
           ...state.items[itemIndex],
-          removedAt: Date.now() // Add timestamp when item is removed
+          removedAt: now,
+          expiryTime: now + EXPIRY_TIME
         };
         state.totalPrice = Number((state.totalPrice - removedItem.price * removedItem.quantity).toFixed(2));
         // Ensure totalPrice never goes below 0
@@ -45,8 +51,9 @@ export default {
         if (existingRemovedIndex !== -1) {
           // If it exists, update its timestamp
           state.removedItems[existingRemovedIndex].removedAt = removedItem.removedAt;
+          state.removedItems[existingRemovedIndex].expiryTime = removedItem.expiryTime;
         } else {
-          // If it's new, add it to removedItems
+          // If not, add it to removedItems
           state.removedItems.push(removedItem);
         }
       }
@@ -145,29 +152,24 @@ export default {
     updateCartItemQuantity({ commit }, { id, selectedSize, quantity }) {
       commit('updateCartItemQuantity', { id, selectedSize, quantity });
     },
-    async changeCartItemSize({ commit, state }, { id, oldSize, newSize }) {
+    async changeCartItemSize({ commit, state }, { id, oldSize, newSize, quantity }) {
       // Find the item to be changed
       const itemIndex = state.items.findIndex(
         (item) => item.id === id && item.selectedSize === oldSize
       );
       
       if (itemIndex !== -1) {
-        const item = state.items[itemIndex];
+        const item = { ...state.items[itemIndex] };
         
-        // Remove the old size directly from state
-        state.totalPrice = Number((state.totalPrice - item.price * item.quantity).toFixed(2));
-        state.items.splice(itemIndex, 1);
+        // Remove the old size
+        commit('softDeleteFromCart', { id, selectedSize: oldSize });
         
-        // Wait for animation
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Add the new size
-        const newItem = { 
+        // Add the new size immediately with preserved quantity
+        commit('addToCart', { 
           ...item, 
           selectedSize: newSize,
-          quantity: 1  // Reset quantity for new size
-        };
-        commit('addToCart', newItem);
+          quantity: quantity || item.quantity // Use passed quantity or preserve existing
+        });
       }
     },
     checkExpiredItems({ commit }) {

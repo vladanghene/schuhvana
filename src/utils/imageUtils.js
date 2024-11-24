@@ -1,7 +1,7 @@
 // Import default image
 const BASE_URL = process.env.VUE_APP_BASE_URL || '';
 const IMAGES_PATH = '/assets/images';
-const DEFAULT_IMAGE = `${BASE_URL}${IMAGES_PATH}/default-shoe.jpg`;
+const DEFAULT_IMAGE = `${IMAGES_PATH}/default-shoe.jpg`;
 
 /**
  * Process an image URL, handling various path formats and providing fallback
@@ -19,11 +19,13 @@ export function getImageUrl(imagePath) {
   // Handle relative paths
   try {
     // Since product images are now in a subdirectory structure,
-    // we just need to ensure they're under the assets/images path
-    const path = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-    return `${BASE_URL}${IMAGES_PATH}/${path}`;
-  } catch (e) {
-    console.error('Invalid image path:', imagePath);
+    // ensure we don't double up on the images path
+    if (imagePath.startsWith(IMAGES_PATH)) {
+      return imagePath;
+    }
+    return `${IMAGES_PATH}/${imagePath}`;
+  } catch (error) {
+    console.error('Error processing image URL:', error);
     return DEFAULT_IMAGE;
   }
 }

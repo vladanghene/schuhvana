@@ -53,41 +53,44 @@ export default {
       required: true
     }
   },
+  created() {
+    // Ensure products are initialized
+    this.$store.dispatch('products/initializeProducts');
+  },
   computed: {
     ...mapGetters('products', ['allProducts']),
-    ...mapGetters('categories', ['getCategoryById', 'allCategories']),
-    
     category() {
       if (!this.categoryname) return null;
-      return this.getCategoryById(this.categoryname);
+      return {
+        id: this.categoryname,
+        name: this.categoryname.charAt(0).toUpperCase() + this.categoryname.slice(1),
+        description: `Browse our ${this.categoryname}'s collection`,
+        image: `categories/${this.categoryname}.jpg`
+      };
     },
     categoryImage() {
       if (!this.category?.image) return '';
       return getImageUrl(this.category.image);
     },
     products() {
+      console.log('Category name:', this.categoryname);
+      console.log('All products:', this.allProducts);
+      
       if (!this.category) return [];
       if (this.categoryname === 'all') {
         return this.allProducts || [];
       }
-      return this.allProducts?.filter(p => 
-        p?.categories?.includes(this.category.id)
-      ) || [];
-    },
-    groupedProducts() {
-      if (this.categoryname !== 'all') return [];
       
-      // Get all categories except 'all'
-      const categories = this.allCategories.filter(cat => cat.id !== 'all');
+      const filtered = this.allProducts?.filter(p => {
+        console.log(`Checking product ${p.name}:`, {
+          categories: p.categories,
+          hasCategory: Array.isArray(p.categories) && p.categories.includes(this.categoryname)
+        });
+        return Array.isArray(p.categories) && p.categories.includes(this.categoryname);
+      }) || [];
       
-      // Group products by category
-      return categories.map(cat => ({
-        id: cat.id,
-        name: cat.name,
-        products: this.allProducts.filter(product => 
-          product.categories?.includes(cat.id)
-        )
-      })).filter(cat => cat.products.length > 0);
+      console.log('Filtered products:', filtered.map(p => ({ name: p.name, categories: p.categories })));
+      return filtered;
     }
   }
 };

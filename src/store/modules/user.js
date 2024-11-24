@@ -233,16 +233,8 @@ export default {
 
   getters: {
     isAuthenticated: state => state.isAuthenticated,
-    getUserInfo: state => {
-      if (!state.isAuthenticated) return null;
-      return state.userInfo || {
-        name: 'Max Mustermann',
-        email: process.env.VUE_APP_TEST_USER_EMAIL || 'test@schuhvana.com',
-        preferences: {
-          sizeScale: state.userPreferredScale
-        }
-      };
-    },
+    getUserInfo: state => state.userInfo,
+    getCurrentScale: state => state.userPreferredScale,
     userPreferredScale: state => state.userPreferredScale,
     availableScales: state => state.availableScales,
     isLoading: state => state.loading,

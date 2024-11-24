@@ -111,7 +111,7 @@ export default {
           { 
             id: 1, 
             name: 'Nike Air Max 90', 
-            categories: ['discover-classics', 'running'],
+            categories: ['discover-classics', 'running', 'women'],
             image: 'products/nike/air-max-90/airmax-1.jpg',
             images: [
               'products/nike/air-max-90/airmax-1.jpg',
@@ -127,14 +127,14 @@ export default {
             description: 'The Nike Air Max 90 stays true to its OG running roots with the iconic Waffle outsole, stitched overlays and classic TPU accents. Fresh colors give a modern look while Max Air cushioning adds comfort to your journey.',
             brand: 'Nike',
             model: 'Air Max 90',
-            sizeType: 'men-regular',
+            sizeType: 'women-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
           },
           { 
             id: 2, 
             name: 'Air Force 1', 
-            categories: ['discover-classics'],
+            categories: ['discover-classics', 'women'],
             image: 'products/nike/air-force-1/af1-1.jpg',
             images: [
               'products/nike/air-force-1/af1-1.jpg',
@@ -152,14 +152,14 @@ export default {
             description: 'The iconic Air Force 1, a timeless classic that never goes out of style.',
             brand: 'Nike',
             model: 'Air Force 1',
-            sizeType: 'men-small',
+            sizeType: 'women-small',
             material: 'Leather and synthetic upper',
             style: 'Classic'
           },
           { 
             id: 3, 
             name: 'Dunk', 
-            categories: ['discover-classics'],
+            categories: ['discover-classics', 'men'],
             image: 'products/nike/dunk/dunk-1.jpg',
             images: [
               'products/nike/dunk/dunk-1.jpg',
@@ -184,7 +184,7 @@ export default {
           { 
             id: 4, 
             name: 'Nike ZoomX Vaporfly', 
-            categories: ['running'],
+            categories: ['running', 'women'],
             image: 'products/nike/vaporfly/vaporfly-1.jpg',
             images: [
               'products/nike/vaporfly/vaporfly-1.jpg',
@@ -202,14 +202,14 @@ export default {
             description: 'High-performance running shoes designed for comfort and speed. Features ZoomX foam and a full-length carbon fiber plate for exceptional energy return.',
             brand: 'Nike',
             model: 'ZoomX Vaporfly',
-            sizeType: 'men-regular',
+            sizeType: 'women-regular',
             material: 'Leather and synthetic upper',
             style: 'Classic'
           },
           { 
             id: 5, 
             name: 'Nike Phantom GX Elite', 
-            categories: ['football'],
+            categories: ['football', 'men'],
             image: 'products/nike/phantom/phantom-1.jpg',
             images: [
               'products/nike/phantom/phantom-1.jpg',
@@ -234,7 +234,7 @@ export default {
           { 
             id: 6, 
             name: 'Nike LeBron XX', 
-            categories: ['basketball'],
+            categories: ['basketball', 'men'],
             image: 'products/nike/lebron/lebron-1.jpg',
             images: [
               'products/nike/lebron/lebron-1.jpg',

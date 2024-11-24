@@ -9,6 +9,8 @@ import UserAccount from '../views/UserAccount.vue';
 import OrderConfirmationPage from '../views/OrderConfirmationPage.vue';
 import CategoryPage from '../views/CategoryPage.vue';
 import Privacy from '../views/Privacy.vue';
+import Contact from '../views/Contact.vue';
+import Terms from '../views/Terms.vue';
 
 const routes = [
   {
@@ -31,6 +33,34 @@ const routes = [
     name: 'Category',
     component: CategoryPage,
     props: true
+  },
+  {
+    path: '/men',
+    name: 'Men',
+    component: CategoryPage,
+    props: { categoryname: 'men' }
+  },
+  {
+    path: '/women',
+    name: 'Women',
+    component: CategoryPage,
+    props: { categoryname: 'women' }
+  },
+  {
+    path: '/kids',
+    name: 'Kids',
+    component: CategoryPage,
+    props: { categoryname: 'kids' }
+  },
+  {
+    path: '/contact',
+    name: 'Contact',
+    component: Contact
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: Terms
   },
   {
     path: '/checkout',
