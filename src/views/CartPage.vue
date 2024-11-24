@@ -308,7 +308,8 @@ export default {
     },
 
     getTimeRemaining() {
-      return function(item) {
+      // Use arrow function to preserve 'this' context
+      return (item) => {
         if (!item || !item.expiryTime) return '0m 0s';
         
         const cacheKey = `${item.id}-${item.selectedSize}`;
@@ -333,10 +334,10 @@ export default {
         const seconds = Math.floor((timeLeft % 60000) / 1000);
         const result = `${minutes}m ${seconds}s`;
         
-        // Cache the result with timestamp
-        this.timeCache.set(cacheKey, { 
-          value: result, 
-          timestamp: currentTime 
+        // Cache the result
+        this.timeCache.set(cacheKey, {
+          value: result,
+          timestamp: currentTime
         });
         
         return result;
