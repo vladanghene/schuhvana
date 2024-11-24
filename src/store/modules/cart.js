@@ -186,13 +186,21 @@ export default {
       
       if (itemIndex !== -1) {
         const item = { ...state.items[itemIndex] };
+        const expiryTime = Date.now() + 2 * 60 * 1000; // 2 minutes from now
         
-        commit('softDeleteFromCart', { id, selectedSize: oldSize });
+        // Soft delete the old item
+        commit('softDeleteFromCart', { 
+          id, 
+          selectedSize: oldSize,
+          expiryTime 
+        });
         
+        // Add the new item with the same expiry time
         commit('addToCart', { 
           ...item, 
           selectedSize: newSize,
-          quantity: quantity || item.quantity
+          quantity: quantity || item.quantity,
+          expiryTime
         });
       }
     },

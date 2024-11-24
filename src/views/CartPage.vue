@@ -137,7 +137,6 @@
                 <div class="removed-details">
                   <h4>{{ item.name }}</h4>
                   <p>Size: {{ getDisplaySize(item) }}</p>
-                  <p>${{ item.price }}</p>
                 </div>
                 <div class="time-remaining">{{ getTimeRemaining(item) }}</div>
               </div>
