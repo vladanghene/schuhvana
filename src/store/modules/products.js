@@ -13,7 +13,6 @@ export default {
           IN: [9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2, 11.4, 11.6, 11.8]
         },
         sizeConversions: {
-          // EU-based conversions
           "EU-40": { US: "7", UK: "6", CM: "25", IN: "9.8" },
           "EU-40.5": { US: "7.5", UK: "6.5", CM: "25.5", IN: "10" },
           "EU-41": { US: "8", UK: "7", CM: "26", IN: "10.2" },
@@ -24,31 +23,7 @@ export default {
           "EU-44.5": { US: "10.5", UK: "9.5", CM: "28.5", IN: "11.2" },
           "EU-45": { US: "11", UK: "10", CM: "29", IN: "11.4" },
           "EU-45.5": { US: "11.5", UK: "10.5", CM: "29.5", IN: "11.6" },
-          "EU-46": { US: "12", UK: "11", CM: "30", IN: "11.8" },
-          // US-based conversions
-          "US-7": { EU: "40", UK: "6", CM: "25", IN: "9.8" },
-          "US-7.5": { EU: "40.5", UK: "6.5", CM: "25.5", IN: "10" },
-          "US-8": { EU: "41", UK: "7", CM: "26", IN: "10.2" },
-          "US-8.5": { EU: "42", UK: "7.5", CM: "26.5", IN: "10.4" },
-          "US-9": { EU: "42.5", UK: "8", CM: "27", IN: "10.6" },
-          "US-9.5": { EU: "43", UK: "8.5", CM: "27.5", IN: "10.8" },
-          "US-10": { EU: "44", UK: "9", CM: "28", IN: "11" },
-          "US-10.5": { EU: "44.5", UK: "9.5", CM: "28.5", IN: "11.2" },
-          "US-11": { EU: "45", UK: "10", CM: "29", IN: "11.4" },
-          "US-11.5": { EU: "45.5", UK: "10.5", CM: "29.5", IN: "11.6" },
-          "US-12": { EU: "46", UK: "11", CM: "30", IN: "11.8" },
-          // UK-based conversions
-          "UK-6": { EU: "40", US: "7", CM: "25", IN: "9.8" },
-          "UK-6.5": { EU: "40.5", US: "7.5", CM: "25.5", IN: "10" },
-          "UK-7": { EU: "41", US: "8", CM: "26", IN: "10.2" },
-          "UK-7.5": { EU: "42", US: "8.5", CM: "26.5", IN: "10.4" },
-          "UK-8": { EU: "42.5", US: "9", CM: "27", IN: "10.6" },
-          "UK-8.5": { EU: "43", US: "9.5", CM: "27.5", IN: "10.8" },
-          "UK-9": { EU: "44", US: "10", CM: "28", IN: "11" },
-          "UK-9.5": { EU: "44.5", US: "10.5", CM: "28.5", IN: "11.2" },
-          "UK-10": { EU: "45", US: "11", CM: "29", IN: "11.4" },
-          "UK-10.5": { EU: "45.5", US: "11.5", CM: "29.5", IN: "11.6" },
-          "UK-11": { EU: "46", US: "12", CM: "30", IN: "11.8" }
+          "EU-46": { US: "12", UK: "11", CM: "30", IN: "11.8" }
         }
       },
       "men-small": {
@@ -60,7 +35,6 @@ export default {
           IN: [9.4, 9.6, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 11, 11.2, 11.4]
         },
         sizeConversions: {
-          // EU-based conversions
           "EU-38": { US: "6", UK: "5", CM: "24", IN: "9.4" },
           "EU-38.5": { US: "6.5", UK: "5.5", CM: "24.5", IN: "9.6" },
           "EU-39": { US: "7", UK: "6", CM: "25", IN: "9.8" },
@@ -83,7 +57,6 @@ export default {
           IN: [8.7, 8.9, 9.1, 9.3, 9.4, 9.6, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 11]
         },
         sizeConversions: {
-          // EU-based conversions
           "EU-35": { US: "5", UK: "2.5", CM: "22", IN: "8.7" },
           "EU-35.5": { US: "5.5", UK: "3", CM: "22.5", IN: "8.9" },
           "EU-36": { US: "6", UK: "3.5", CM: "23", IN: "9.1" },
@@ -108,7 +81,6 @@ export default {
           IN: [8.3, 8.5, 8.7, 8.9, 9.1, 9.3, 9.4, 9.6, 9.8, 10, 10.2]
         },
         sizeConversions: {
-          // EU-based conversions
           "EU-33.5": { US: "4", UK: "1.5", CM: "21", IN: "8.3" },
           "EU-34": { US: "4.5", UK: "2", CM: "21.5", IN: "8.5" },
           "EU-35": { US: "5", UK: "2.5", CM: "22", IN: "8.7" },
@@ -352,36 +324,74 @@ export default {
         const sizeData = state.standardSizes[product.sizeType];
         if (!sizeData?.sizeConversions) return null;
 
-        // Find which scale this size belongs to
+        // Step 1: Determine the source scale and normalize the size value
         let sourceScale = null;
+        let normalizedSize = size;
         const sizeNum = Number(size);
+
         for (const [scale, sizes] of Object.entries(sizeData.sizes)) {
-          if (scale === 'EU' ? sizes.includes(sizeNum) : sizes.includes(size)) {
-            sourceScale = scale;
-            break;
+          switch (scale) {
+            // Numeric scales: EU, CM, IN
+            case 'EU':
+            case 'CM':
+            case 'IN':
+              if (sizes.includes(sizeNum)) {
+                sourceScale = scale;
+                normalizedSize = sizeNum;
+              }
+              break;
+            // String scales: US, UK
+            case 'US':
+            case 'UK':
+              if (sizes.includes(sizeNum) || sizes.includes(Number(size))) {
+                sourceScale = scale;
+                normalizedSize = String(sizeNum || size);
+              }
+              break;
+          }
+          if (sourceScale) break;
+        }
+
+        if (!sourceScale) return null;
+
+        // Step 2: Find the corresponding EU size (our reference scale)
+        let euKey;
+        if (sourceScale === 'EU') {
+          // If already EU, use directly
+          euKey = `EU-${normalizedSize}`;
+        } else {
+          // Otherwise, find the EU size that maps to our source size
+          for (const [key, conversions] of Object.entries(sizeData.sizeConversions)) {
+            if (conversions[sourceScale] === String(normalizedSize)) {
+              euKey = key;
+              break;
+            }
           }
         }
 
-        if (!sourceScale) {
-          return null;
-        }
+        if (!euKey || !(euKey in sizeData.sizeConversions)) return null;
 
-        // Convert size to string for conversion lookup
-        const key = `${sourceScale}-${String(size)}`;
-        if (key in sizeData.sizeConversions) {
-          // Keep EU as numbers, others as strings
-          const conversions = {};
-          for (const [scale, val] of Object.entries(sizeData.sizeConversions[key])) {
-            conversions[scale] = scale === 'EU' ? Number(val) : val;
+        // Step 3: Build the conversion map using EU as reference
+        const euSize = Number(euKey.split('-')[1]);
+        const numericScales = ['EU', 'CM', 'IN'];
+        
+        // Start with source and EU values
+        const conversions = {
+          [sourceScale]: numericScales.includes(sourceScale) ? Number(normalizedSize) : String(normalizedSize),
+          'EU': euSize
+        };
+        
+        // Add all other scale conversions
+        const euConversions = sizeData.sizeConversions[euKey];
+        for (const [scale, val] of Object.entries(euConversions)) {
+          if (scale !== sourceScale) {
+            conversions[scale] = numericScales.includes(scale) ? Number(val) : val;
           }
-          // Use number for EU, string for others in source value
-          const sourceValue = sourceScale === 'EU' ? sizeNum : String(size);
-          const result = { [sourceScale]: sourceValue, ...conversions };
-          return result;
         }
         
-        return null;
+        return conversions;
       } catch (error) {
+        console.error('Error in getSizeConversions:', error);
         return null;
       }
     }

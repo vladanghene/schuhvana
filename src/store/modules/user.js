@@ -17,7 +17,7 @@ export default {
     isAuthenticated: !!localStorage.getItem(TOKEN_KEY),
     userPreferredScale: localStorage.getItem('userPreferredScale') || 'EU',
     defaultScale: 'EU',
-    availableScales: ['EU', 'US', 'UK', 'CM', 'JP'],
+    availableScales: ['EU', 'US', 'UK', 'CM', 'IN'],
     loading: false,
     error: null
   },

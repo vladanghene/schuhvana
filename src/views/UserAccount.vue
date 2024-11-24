@@ -135,8 +135,8 @@
                               <div class="text-caption text-medium-emphasis">Your preferred measurement system</div>
                             </div>
                             <v-select
-                              v-model="selectedSizeScale"
-                              :items="sizeScales"
+                              v-model="currentScale"
+                              :items="getAvailableScales"
                               variant="outlined"
                               density="compact"
                               hide-details
@@ -149,8 +149,8 @@
                               <div class="text-caption text-medium-emphasis">Based on your selected scale</div>
                             </div>
                             <v-select
-                              v-model="selectedSize"
-                              :items="getSizesForScale(selectedSizeScale)"
+                              v-model="currentSize"
+                              :items="availableSizes"
                               variant="outlined"
                               density="compact"
                               hide-details
@@ -318,7 +318,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapState, mapGetters, mapActions } from 'vuex';
 import AccountSettings from '@/components/AccountSettings.vue';
 
 export default {
@@ -334,17 +334,14 @@ export default {
         { label: 'Orders', value: 'orders' },
         { label: 'Settings', value: 'settings' }
       ],
-      selectedSizeScale: 'EU',
-      selectedSize: '42',
-      sizeScales: ['EU', 'US', 'UK', 'CM', 'JP'],
-      orderHeaders: [
-        { title: 'Order ID', key: 'id', align: 'start' },
-        { title: 'Date', key: 'date' },
-        { title: 'Name', key: 'name' },
-        { title: 'Total', key: 'total' },
-        { title: 'Status', key: 'status', align: 'center' },
-        { title: 'Actions', key: 'actions', align: 'end', sortable: false },
-      ],
+      showPreferences: false,
+      showSizeGuide: false,
+      showSettings: false,
+      showOrderDetails: false,
+      selectedOrder: null,
+      loading: false,
+      orderFilter: 'All Orders',
+      orderSearch: '',
       orders: [
         {
           id: 'ORD-001',
@@ -410,29 +407,43 @@ export default {
           expMonth: '03',
           expYear: '2025'
         }
-      ],
-      showSettings: false,
-      showOrderDetails: false,
-      selectedOrder: null,
-      loading: false,
-      orderFilter: 'All Orders',
-      orderSearch: ''
+      ]
     };
   },
   computed: {
-    ...mapState('user', ['userInfo']),
+    ...mapState('user', ['userPreferredScale', 'availableScales', 'user', 'userInfo']),
+    ...mapGetters('products', ['getAvailableScales', 'getSizeConversions', 'getProductSizes']),
+    currentScale: {
+      get() {
+        return this.userPreferredScale || 'EU';
+      },
+      set(value) {
+        this.handleScaleChange(value);
+      }
+    },
+    currentSize: {
+      get() {
+        return this.userInfo?.preferences?.shoeSize || null;
+      },
+      set(value) {
+        this.handleSizeChange(value);
+      }
+    },
+    availableSizes() {
+      const sizeType = 'men-regular';
+      const sizes = this.getProductSizes({ sizeType });
+      return sizes[this.currentScale] || [];
+    },
     userData() {
       return this.userInfo;
     },
     filteredOrders() {
       let orders = [...this.orders];
       
-      // Apply status filter
       if (this.orderFilter !== 'All Orders') {
         orders = orders.filter(order => order.status === this.orderFilter);
       }
       
-      // Apply search filter
       if (this.orderSearch) {
         const searchTerm = this.orderSearch.toLowerCase();
         orders = orders.filter(order => 
@@ -441,18 +452,16 @@ export default {
         );
       }
 
-      // Add computed properties
       return orders.map(order => ({
-        columns: {
-          ...order,
-          itemCount: order.items ? order.items.length : 0,
-          total: order.items ? order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0
-        }
+        ...order,
+        itemCount: order.items ? order.items.length : 0,
+        total: order.items ? order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0
       }));
     }
   },
   methods: {
-    ...mapActions('user', ['logout']),
+    ...mapActions('user', ['updateUserProfile', 'updatePreferredScale', 'logout']),
+    
     async handleLogout() {
       try {
         await this.logout();
@@ -461,6 +470,47 @@ export default {
         console.error('Logout failed:', error);
       }
     },
+    
+    async handleScaleChange(newScale) {
+      if (newScale === this.currentScale) return;
+      
+      const oldScale = this.currentScale;
+
+      // First update the scale in store
+      await this.updatePreferredScale(newScale);
+
+      // Convert the size using product store's conversion mechanism
+      if (this.currentSize) {
+        const mockProduct = { sizeType: 'men-regular' }; // This should come from user preferences
+        const conversions = this.getSizeConversions(this.currentSize, mockProduct);
+        
+        if (conversions && conversions[newScale]) {
+          const newSize = conversions[newScale];
+          
+          // Update the size in user preferences
+          await this.updateUserProfile({
+            preferences: {
+              ...this.userInfo?.preferences,
+              sizeScale: newScale,
+              shoeSize: newSize
+            }
+          });
+        }
+      }
+    },
+
+    async handleSizeChange(newSize) {
+      if (newSize === this.currentSize) return;
+      
+      // Update the size in user preferences
+      await this.updateUserProfile({
+        preferences: {
+          ...this.userInfo?.preferences,
+          shoeSize: newSize
+        }
+      });
+    },
+    
     getStatusColor(status) {
       const colors = {
         'Delivered': 'success',
@@ -470,6 +520,7 @@ export default {
       };
       return colors[status] || 'grey';
     },
+    
     getCardIcon(brand) {
       const icons = {
         'Visa': 'mdi-credit-card',
@@ -479,28 +530,20 @@ export default {
       };
       return icons[brand] || 'mdi-credit-card';
     },
-    getSizesForScale(scale) {
-      const sizes = {
-        'EU': ['38', '39', '40', '41', '42', '43', '44', '45'],
-        'US': ['6', '7', '8', '9', '10', '11', '12', '13'],
-        'UK': ['5', '6', '7', '8', '9', '10', '11', '12'],
-        'CM': ['24', '25', '26', '27', '28', '29', '30'],
-        'JP': ['240', '250', '260', '270', '280', '290', '300']
-      };
-      return sizes[scale] || [];
-    },
+    
     formatPrice(price) {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD'
       }).format(price);
     },
+    
     viewOrderDetails(order) {
       this.selectedOrder = order;
       this.showOrderDetails = true;
     },
+    
     handleSettingsSaved() {
-      // Refresh the user data in case any profile information was updated
       this.$store.dispatch('user/initialize');
     }
   }
