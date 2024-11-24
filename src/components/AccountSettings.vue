@@ -1,146 +1,306 @@
 <template>
-  <div class="account-settings">
-    <h3>Account Settings</h3>
-    
-    <div class="settings-section">
-      <h4>Profile Information</h4>
-      <div class="form-group">
-        <label>Name</label>
-        <input type="text" v-model="profileData.name" @change="updateProfile" />
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" v-model="profileData.email" @change="updateProfile" />
-      </div>
-    </div>
+  <div class="settings-container">
+    <v-form ref="form" v-model="valid" @submit.prevent="handleSubmit">
+      <!-- Personal Information -->
+      <div class="mb-8">
+        <h3 class="text-h6 font-weight-regular mb-6" style="letter-spacing: 0.5px;">Personal Information</h3>
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="firstName"
+              label="First Name"
+              variant="outlined"
+              density="comfortable"
+              bg-color="white"
+              hide-details="auto"
+              class="mb-4"
+            ></v-text-field>
+          </v-col>
+          
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="lastName"
+              label="Last Name"
+              variant="outlined"
+              density="comfortable"
+              bg-color="white"
+              hide-details="auto"
+              class="mb-4"
+            ></v-text-field>
+          </v-col>
 
-    <div class="settings-section">
-      <h4>Shopping Preferences</h4>
-      <div class="form-group">
-        <label>Preferred Size Scale</label>
-        <select v-model="selectedScale" @change="updateSizePreference">
-          <option v-for="scale in availableScales" :key="scale" :value="scale">
-            {{ scale }} Size
-          </option>
-        </select>
-        <p class="help-text">This will be your default size scale when shopping.</p>
-      </div>
-    </div>
+          <v-col cols="12">
+            <v-text-field
+              v-model="email"
+              label="Email Address"
+              type="email"
+              variant="outlined"
+              density="comfortable"
+              bg-color="white"
+              hide-details="auto"
+              class="mb-4"
+              :readonly="true"
+            ></v-text-field>
+          </v-col>
 
-    <div v-if="updateStatus" :class="['update-status', updateStatus.type]">
-      {{ updateStatus.message }}
-    </div>
+          <v-col cols="12">
+            <v-text-field
+              v-model="phone"
+              label="Phone Number"
+              variant="outlined"
+              density="comfortable"
+              bg-color="white"
+              hide-details="auto"
+              class="mb-4"
+            ></v-text-field>
+          </v-col>
+        </v-row>
+      </div>
+
+      <!-- Password Settings -->
+      <div class="mb-8">
+        <h3 class="text-h6 font-weight-regular mb-6" style="letter-spacing: 0.5px;">Password Settings</h3>
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="currentPassword"
+              label="Current Password"
+              :type="showCurrentPassword ? 'text' : 'password'"
+              variant="outlined"
+              density="comfortable"
+              bg-color="white"
+              hide-details="auto"
+              class="mb-4"
+              :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showCurrentPassword = !showCurrentPassword"
+            ></v-text-field>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="newPassword"
+              label="New Password"
+              :type="showNewPassword ? 'text' : 'password'"
+              variant="outlined"
+              density="comfortable"
+              bg-color="white"
+              hide-details="auto"
+              class="mb-4"
+              :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showNewPassword = !showNewPassword"
+            ></v-text-field>
+          </v-col>
+        </v-row>
+      </div>
+
+      <!-- Notifications -->
+      <div class="mb-8">
+        <h3 class="text-h6 font-weight-regular mb-6" style="letter-spacing: 0.5px;">Notification Preferences</h3>
+        <v-card variant="outlined" class="pa-4 mb-4">
+          <v-row>
+            <v-col cols="12">
+              <div class="d-flex justify-space-between align-center mb-4">
+                <div>
+                  <span class="text-body-1 font-weight-medium">Email Notifications</span>
+                  <div class="text-caption text-medium-emphasis">Receive updates about your orders and account</div>
+                </div>
+                <v-switch
+                  v-model="emailNotifications"
+                  color="black"
+                  hide-details
+                ></v-switch>
+              </div>
+
+              <div class="d-flex justify-space-between align-center mb-4">
+                <div>
+                  <span class="text-body-1 font-weight-medium">SMS Notifications</span>
+                  <div class="text-caption text-medium-emphasis">Get text messages about order status</div>
+                </div>
+                <v-switch
+                  v-model="smsNotifications"
+                  color="black"
+                  hide-details
+                ></v-switch>
+              </div>
+
+              <div class="d-flex justify-space-between align-center">
+                <div>
+                  <span class="text-body-1 font-weight-medium">Marketing Communications</span>
+                  <div class="text-caption text-medium-emphasis">Stay updated with new releases and exclusive offers</div>
+                </div>
+                <v-switch
+                  v-model="marketingNotifications"
+                  color="black"
+                  hide-details
+                ></v-switch>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card>
+      </div>
+
+      <!-- Privacy Settings -->
+      <div class="mb-8">
+        <h3 class="text-h6 font-weight-regular mb-6" style="letter-spacing: 0.5px;">Privacy Settings</h3>
+        <v-card variant="outlined" class="pa-4">
+          <v-row>
+            <v-col cols="12">
+              <div class="d-flex justify-space-between align-center mb-4">
+                <div>
+                  <span class="text-body-1 font-weight-medium">Profile Visibility</span>
+                  <div class="text-caption text-medium-emphasis">Allow other users to see your profile</div>
+                </div>
+                <v-switch
+                  v-model="profileVisibility"
+                  color="black"
+                  hide-details
+                ></v-switch>
+              </div>
+
+              <div class="d-flex justify-space-between align-center">
+                <div>
+                  <span class="text-body-1 font-weight-medium">Data Collection</span>
+                  <div class="text-caption text-medium-emphasis">Allow us to collect usage data to improve your experience</div>
+                </div>
+                <v-switch
+                  v-model="dataCollection"
+                  color="black"
+                  hide-details
+                ></v-switch>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex gap-4 justify-end">
+        <v-btn
+          variant="outlined"
+          color="black"
+          size="large"
+          style="letter-spacing: 0.5px; min-width: 120px;"
+          @click="resetForm"
+        >
+          Cancel
+        </v-btn>
+        <v-btn
+          type="submit"
+          color="black"
+          size="large"
+          style="letter-spacing: 0.5px; min-width: 120px;"
+          :loading="loading"
+        >
+          Save Changes
+        </v-btn>
+      </div>
+    </v-form>
   </div>
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 
 export default {
   name: 'AccountSettings',
   data() {
     return {
-      profileData: {
-        name: '',
-        email: ''
-      },
-      selectedScale: null,
-      updateStatus: null
+      valid: true,
+      loading: false,
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      currentPassword: '',
+      newPassword: '',
+      showCurrentPassword: false,
+      showNewPassword: false,
+      emailNotifications: true,
+      smsNotifications: false,
+      marketingNotifications: true,
+      profileVisibility: false,
+      dataCollection: true
     };
   },
   computed: {
-    ...mapState('user', ['userInfo', 'userPreferredScale']),
-    ...mapGetters('user', ['getAvailableScales', 'getDefaultScale']),
-    availableScales() {
-      return this.getAvailableScales;
-    }
+    ...mapState('user', ['user'])
   },
   methods: {
-    ...mapActions('user', ['updatePreferredScale', 'updateUserInfo']),
-    async updateProfile() {
+    ...mapActions('user', ['updateUserProfile']),
+    async handleSubmit() {
+      if (!this.$refs.form.validate()) return;
+
+      this.loading = true;
       try {
-        await this.updateUserInfo(this.profileData);
-        this.showStatus('success', 'Profile updated successfully');
+        await this.updateUserProfile({
+          firstName: this.firstName,
+          lastName: this.lastName,
+          phone: this.phone,
+          password: this.newPassword || undefined,
+          settings: {
+            emailNotifications: this.emailNotifications,
+            smsNotifications: this.smsNotifications,
+            marketingNotifications: this.marketingNotifications,
+            profileVisibility: this.profileVisibility,
+            dataCollection: this.dataCollection
+          }
+        });
+        // Show success message
       } catch (error) {
-        this.showStatus('error', 'Failed to update profile');
+        console.error('Failed to update profile:', error);
+        // Show error message
+      } finally {
+        this.loading = false;
       }
     },
-    async updateSizePreference() {
-      try {
-        await this.updatePreferredScale(this.selectedScale);
-        this.showStatus('success', 'Size preference updated');
-      } catch (error) {
-        this.showStatus('error', 'Failed to update size preference');
-      }
+    resetForm() {
+      this.$refs.form.reset();
+      this.loadUserData();
     },
-    showStatus(type, message) {
-      this.updateStatus = { type, message };
-      setTimeout(() => {
-        this.updateStatus = null;
-      }, 3000);
+    loadUserData() {
+      if (this.user) {
+        this.firstName = this.user.firstName || '';
+        this.lastName = this.user.lastName || '';
+        this.email = this.user.email || '';
+        this.phone = this.user.phone || '';
+        // Load other settings if available
+      }
     }
   },
   created() {
-    // Initialize form with current user data
-    if (this.userInfo) {
-      this.profileData = { ...this.userInfo };
-    }
-    this.selectedScale = this.userPreferredScale;
+    this.loadUserData();
   }
 };
 </script>
 
 <style scoped>
-.account-settings {
-  max-width: 600px;
+.settings-container {
+  max-width: 800px;
   margin: 0 auto;
-  padding: 1rem;
 }
 
-.settings-section {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  border: 1px solid #eee;
-  border-radius: 8px;
+.v-text-field :deep(.v-field__input) {
+  font-size: 0.95rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.5px !important;
 }
 
-.form-group {
-  margin-bottom: 1rem;
+.v-text-field :deep(.v-label) {
+  font-size: 0.95rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.5px !important;
+  color: var(--v-theme-secondary) !important;
 }
 
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+.v-switch :deep(.v-switch__track) {
+  opacity: 0.12;
 }
 
-input, select {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+.v-switch :deep(.v-switch__thumb) {
+  color: var(--v-theme-primary);
 }
 
-.help-text {
-  font-size: 0.875rem;
-  color: #666;
-  margin-top: 0.25rem;
-}
-
-.update-status {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-}
-
-.success {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.error {
-  background-color: #f8d7da;
-  color: #721c24;
+.gap-4 {
+  gap: 16px;
 }
 </style>
