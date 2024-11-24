@@ -194,13 +194,19 @@ export default {
     const initializeNewSelection = (id, size) => {
       const key = `${id}-${size}`;
       selectedSizes[key] = '';
-      selectedSizesChange[key] = size;
+      const product = store.getters['products/getProductById'](id);
+      const currentScale = store.getters['user/userPreferredScale'];
+      const conversions = store.getters['products/getSizeConversions'](size, product);
+      selectedSizesChange[key] = conversions ? conversions[currentScale] || size : size;
     };
 
-    // Watch for cart changes to initialize new items
+    // Watch for cart changes and scale changes to initialize new items
     watch(
-      () => store.getters['cart/cartItems'],
-      (items) => {
+      [
+        () => store.getters['cart/cartItems'],
+        () => store.getters['user/userPreferredScale']
+      ],
+      ([items, scale]) => {
         items.forEach(item => {
           initializeNewSelection(item.id, item.selectedSize);
         });
@@ -362,7 +368,10 @@ export default {
       // Initialize select boxes for the restored item
       const key = `${item.id}-${item.selectedSize}`;
       this.selectedSizes[key] = '';
-      this.selectedSizesChange[key] = item.selectedSize;
+      const product = this.getProductById(item.id);
+      const currentScale = this.userPreferredScale;
+      const conversions = this.getSizeConversions(item.selectedSize, product);
+      this.selectedSizesChange[key] = conversions ? conversions[currentScale] || item.selectedSize : item.selectedSize;
       
       // Restore item
       this.restoreToCart({ 
@@ -387,15 +396,12 @@ export default {
       if (!newSize || newSize === item.selectedSize) return; // Skip if no size selected or same size
       
       if (!this.isSizeInCart(item.id, newSize)) {
-        // Store the quantity before changing size
-        const quantity = item.quantity;
-        
-        // Change the size in cart
+        // Change the size in cart while preserving quantity
         await this.changeCartItemSize({ 
           id: item.id, 
           oldSize: item.selectedSize,
           newSize,
-          quantity // Pass quantity to preserve it
+          quantity: item.quantity
         });
       }
     },
