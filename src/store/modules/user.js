@@ -24,19 +24,34 @@ export default {
 
   mutations: {
     setUser(state, userInfo) {
-      state.userInfo = userInfo;
-      state.isAuthenticated = true;
+      state.userInfo = userInfo ? { ...userInfo } : null;
+      state.isAuthenticated = !!userInfo;
       
-      // Restore user's preferred scale if saved in their profile
       if (userInfo?.preferences?.sizeScale) {
         state.userPreferredScale = userInfo.preferences.sizeScale;
         localStorage.setItem('userPreferredScale', userInfo.preferences.sizeScale);
       }
     },
 
-    setToken(state, token) {
-      localStorage.setItem(TOKEN_KEY, token);
-      state.isAuthenticated = true;
+    updateUserInfo(state, info) {
+      if (!state.userInfo) return;
+
+      const updatedUser = { ...state.userInfo };
+      
+      if (info.preferences) {
+        updatedUser.preferences = {
+          ...updatedUser.preferences,
+          ...info.preferences
+        };
+      }
+      
+      Object.keys(info).forEach(key => {
+        if (key !== 'preferences') {
+          updatedUser[key] = info[key];
+        }
+      });
+      
+      state.userInfo = updatedUser;
     },
 
     setLoading(state, status) {
@@ -75,13 +90,6 @@ export default {
           sizeScale: scale
         };
       }
-    },
-
-    updateUserInfo(state, info) {
-      state.userInfo = {
-        ...state.userInfo,
-        ...info
-      };
     }
   },
 
@@ -107,15 +115,21 @@ export default {
         const mockUser = {
           id: 1,
           email: testEmail,
-          name: 'Max Mustermann',
+          firstName: 'Max',
+          lastName: 'Mustermann',
+          phone: '+1 (555) 123-4567',
           preferences: {
-            sizeScale: 'EU'
+            sizeScale: 'EU',
+            emailNotifications: true,
+            orderUpdates: true,
+            promotionalEmails: false,
+            profileVisibility: 'private',
+            dataSharing: false
           }
         };
 
         const token = generateMockToken(email);
         
-        commit('setToken', token);
         commit('setUser', mockUser);
 
         return { user: mockUser, token };
@@ -155,6 +169,26 @@ export default {
       }
     },
 
+    async updateUserProfile({ commit, state }, data) {
+      try {
+        commit('setLoading', true);
+        commit('clearError');
+        
+        // In a real app, this would be an API call
+        // const response = await axios.patch('/api/user/profile', data);
+        
+        commit('updateUserInfo', data);
+        const result = { ...state.userInfo };
+        return result;
+      } catch (error) {
+        console.error('Action updateUserProfile - Error:', error);
+        commit('setError', error.response?.data?.message || 'Failed to update profile');
+        throw error;
+      } finally {
+        commit('setLoading', false);
+      }
+    },
+
     async updateUserInfo({ commit }, info) {
       try {
         commit('setLoading', true);
@@ -175,8 +209,24 @@ export default {
     initialize({ commit }) {
       const token = localStorage.getItem(TOKEN_KEY);
       if (token) {
-        // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        // Optionally fetch user data here if needed
+        // Set up mock user data for development
+        const mockUser = {
+          id: 1,
+          email: process.env.VUE_APP_TEST_USER_EMAIL,
+          firstName: 'Max',
+          lastName: 'Mustermann',
+          phone: '+1 (555) 123-4567',
+          preferences: {
+            sizeScale: 'EU',
+            emailNotifications: true,
+            orderUpdates: true,
+            promotionalEmails: false,
+            profileVisibility: 'private',
+            dataSharing: false
+          }
+        };
+        
+        commit('setUser', mockUser);
       }
     }
   },

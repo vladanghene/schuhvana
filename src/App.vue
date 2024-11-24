@@ -194,7 +194,7 @@ export default {
     ...mapGetters('cart', ['cartItemCount'])
   },
   methods: {
-    ...mapActions('user', ['logout']),
+    ...mapActions('user', ['logout', 'initialize']),
     async handleLogout() {
       try {
         await this.logout();
@@ -205,7 +205,7 @@ export default {
     }
   },
   created() {
-    this.$store.dispatch('user/checkAuth');
+    this.initialize();
   }
 };
 </script>

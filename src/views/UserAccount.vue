@@ -9,7 +9,7 @@
               <div>
                 <h1 class="text-h4 font-weight-light mb-2" style="letter-spacing: 1.5px;">My Account</h1>
                 <p class="text-body-1 text-medium-emphasis font-weight-light" style="letter-spacing: 0.5px;">
-                  Welcome back, {{ user?.firstName || 'User' }}
+                  Welcome back, {{ userData?.firstName || 'Max' }}
                 </p>
               </div>
               <div class="d-flex gap-4">
@@ -18,6 +18,7 @@
                   variant="outlined"
                   color="black"
                   style="letter-spacing: 0.5px;"
+                  @click="showSettings = true"
                 >
                   Settings
                 </v-btn>
@@ -190,29 +191,122 @@
               <!-- Orders Tab -->
               <v-window-item value="orders">
                 <v-container class="pa-6">
-                  <v-data-table
-                    :headers="orderHeaders"
-                    :items="orders"
-                    class="elevation-0"
-                  >
-                    <template v-slot:item.status="{ item }">
-                      <v-chip
-                        :color="getStatusColor(item.status)"
-                        variant="tonal"
-                        size="small"
-                        class="text-caption"
+                  <div class="d-flex flex-column gap-6">
+                    <!-- Orders Filter -->
+                    <v-card variant="outlined" class="pa-4">
+                      <div class="d-flex flex-wrap gap-4 align-center justify-space-between mb-4">
+                        <div>
+                          <h3 class="text-h6 font-weight-regular" style="letter-spacing: 0.5px;">Order History</h3>
+                          <p class="text-body-2 text-medium-emphasis">View and track your orders</p>
+                        </div>
+                        <div class="d-flex gap-4">
+                          <v-select
+                            v-model="orderFilter"
+                            :items="['All Orders', 'Processing', 'Shipped', 'Delivered', 'Cancelled']"
+                            variant="outlined"
+                            density="comfortable"
+                            hide-details
+                            class="max-width-200"
+                          ></v-select>
+                          <v-text-field
+                            v-model="orderSearch"
+                            placeholder="Search orders..."
+                            prepend-inner-icon="mdi-magnify"
+                            variant="outlined"
+                            density="comfortable"
+                            hide-details
+                            class="max-width-200"
+                          ></v-text-field>
+                        </div>
+                      </div>
+                    </v-card>
+
+                    <!-- Orders List -->
+                    <v-card variant="outlined" class="pa-0">
+                      <v-data-table
+                        :headers="orderHeaders"
+                        :items="filteredOrders"
+                        :loading="loading"
+                        hover
                       >
-                        {{ item.status }}
-                      </v-chip>
-                    </template>
-                  </v-data-table>
+                        <template v-slot:item.status="{ item }">
+                          <v-chip
+                            :color="getStatusColor(item.columns.status)"
+                            variant="tonal"
+                            size="small"
+                            class="text-caption"
+                          >
+                            {{ item.columns.status }}
+                          </v-chip>
+                        </template>
+                        <template v-slot:item.actions="{ item }">
+                          <v-btn
+                            variant="text"
+                            density="comfortable"
+                            icon="mdi-eye"
+                            @click="viewOrderDetails(item.columns)"
+                          ></v-btn>
+                        </template>
+                      </v-data-table>
+                    </v-card>
+
+                    <!-- Order Details Dialog -->
+                    <v-dialog v-model="showOrderDetails" width="600">
+                      <v-card v-if="selectedOrder">
+                        <v-card-title class="d-flex justify-space-between align-center pa-4">
+                          <span class="text-h6">Order Details #{{ selectedOrder.id }}</span>
+                          <v-btn icon="mdi-close" variant="text" @click="showOrderDetails = false"></v-btn>
+                        </v-card-title>
+                        <v-divider></v-divider>
+                        <v-card-text class="pa-4">
+                          <div class="d-flex flex-column gap-4">
+                            <div>
+                              <div class="text-subtitle-2 mb-1">Order Status</div>
+                              <v-chip
+                                :color="getStatusColor(selectedOrder.status)"
+                                variant="tonal"
+                                size="small"
+                              >
+                                {{ selectedOrder.status }}
+                              </v-chip>
+                            </div>
+                            <div>
+                              <div class="text-subtitle-2 mb-2">Items</div>
+                              <v-list>
+                                <v-list-item
+                                  v-for="item in selectedOrder.items"
+                                  :key="item.id"
+                                  :title="item.name"
+                                  :subtitle="`Size: ${item.size} | Quantity: ${item.quantity}`"
+                                >
+                                  <template v-slot:prepend>
+                                    <v-avatar size="48">
+                                      <v-img :src="item.image" cover></v-img>
+                                    </v-avatar>
+                                  </template>
+                                  <template v-slot:append>
+                                    {{ formatPrice(item.price) }}
+                                  </template>
+                                </v-list-item>
+                              </v-list>
+                            </div>
+                            <v-divider></v-divider>
+                            <div class="d-flex justify-space-between">
+                              <span class="text-subtitle-1">Total</span>
+                              <span class="text-subtitle-1">{{ formatPrice(selectedOrder.total) }}</span>
+                            </div>
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                    </v-dialog>
+                  </div>
                 </v-container>
               </v-window-item>
 
               <!-- Settings Tab -->
               <v-window-item value="settings">
                 <v-container class="pa-6">
-                  <account-settings></account-settings>
+                  <AccountSettings @saved="handleSettingsSaved" />
                 </v-container>
               </v-window-item>
             </v-window>
@@ -244,11 +338,12 @@ export default {
       selectedSize: '42',
       sizeScales: ['EU', 'US', 'UK', 'CM', 'JP'],
       orderHeaders: [
-        { title: 'Order #', key: 'id' },
+        { title: 'Order ID', key: 'id', align: 'start' },
         { title: 'Date', key: 'date' },
-        { title: 'Product', key: 'name' },
+        { title: 'Name', key: 'name' },
         { title: 'Total', key: 'total' },
-        { title: 'Status', key: 'status' }
+        { title: 'Status', key: 'status', align: 'center' },
+        { title: 'Actions', key: 'actions', align: 'end', sortable: false },
       ],
       orders: [
         {
@@ -257,7 +352,17 @@ export default {
           name: 'Classic Leather Sneakers',
           total: '$129.99',
           status: 'Delivered',
-          image: 'https://example.com/shoe1.jpg'
+          image: 'https://example.com/shoe1.jpg',
+          items: [
+            {
+              id: 1,
+              name: 'Classic Leather Sneakers',
+              size: '42',
+              quantity: 1,
+              price: 129.99,
+              image: 'https://example.com/shoe1.jpg'
+            }
+          ]
         },
         {
           id: 'ORD-002',
@@ -265,7 +370,17 @@ export default {
           name: 'Running Performance Shoes',
           total: '$159.99',
           status: 'Processing',
-          image: 'https://example.com/shoe2.jpg'
+          image: 'https://example.com/shoe2.jpg',
+          items: [
+            {
+              id: 2,
+              name: 'Running Performance Shoes',
+              size: '43',
+              quantity: 1,
+              price: 159.99,
+              image: 'https://example.com/shoe2.jpg'
+            }
+          ]
         }
       ],
       addresses: [
@@ -295,11 +410,46 @@ export default {
           expMonth: '03',
           expYear: '2025'
         }
-      ]
+      ],
+      showSettings: false,
+      showOrderDetails: false,
+      selectedOrder: null,
+      loading: false,
+      orderFilter: 'All Orders',
+      orderSearch: ''
     };
   },
   computed: {
-    ...mapState('user', ['user'])
+    ...mapState('user', ['userInfo']),
+    userData() {
+      return this.userInfo;
+    },
+    filteredOrders() {
+      let orders = [...this.orders];
+      
+      // Apply status filter
+      if (this.orderFilter !== 'All Orders') {
+        orders = orders.filter(order => order.status === this.orderFilter);
+      }
+      
+      // Apply search filter
+      if (this.orderSearch) {
+        const searchTerm = this.orderSearch.toLowerCase();
+        orders = orders.filter(order => 
+          order.id.toString().includes(searchTerm) ||
+          order.name.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      // Add computed properties
+      return orders.map(order => ({
+        columns: {
+          ...order,
+          itemCount: order.items ? order.items.length : 0,
+          total: order.items ? order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0
+        }
+      }));
+    }
   },
   methods: {
     ...mapActions('user', ['logout']),
@@ -338,6 +488,20 @@ export default {
         'JP': ['240', '250', '260', '270', '280', '290', '300']
       };
       return sizes[scale] || [];
+    },
+    formatPrice(price) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(price);
+    },
+    viewOrderDetails(order) {
+      this.selectedOrder = order;
+      this.showOrderDetails = true;
+    },
+    handleSettingsSaved() {
+      // Refresh the user data in case any profile information was updated
+      this.$store.dispatch('user/initialize');
     }
   }
 };

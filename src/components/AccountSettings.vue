@@ -1,6 +1,6 @@
 <template>
   <div class="settings-container">
-    <v-form ref="form" v-model="valid" @submit.prevent="handleSubmit">
+    <v-form ref="form" v-model="valid">
       <!-- Personal Information -->
       <div class="mb-8">
         <h3 class="text-h6 font-weight-regular mb-6" style="letter-spacing: 0.5px;">Personal Information</h3>
@@ -12,7 +12,7 @@
               variant="outlined"
               density="comfortable"
               bg-color="white"
-              hide-details="auto"
+              :rules="[v => !!v || 'First name is required']"
               class="mb-4"
             ></v-text-field>
           </v-col>
@@ -24,7 +24,7 @@
               variant="outlined"
               density="comfortable"
               bg-color="white"
-              hide-details="auto"
+              :rules="[v => !!v || 'Last name is required']"
               class="mb-4"
             ></v-text-field>
           </v-col>
@@ -36,9 +36,7 @@
               type="email"
               variant="outlined"
               density="comfortable"
-              bg-color="white"
-              hide-details="auto"
-              class="mb-4"
+              class="mb-4 readonly-field"
               :readonly="true"
             ></v-text-field>
           </v-col>
@@ -50,7 +48,7 @@
               variant="outlined"
               density="comfortable"
               bg-color="white"
-              hide-details="auto"
+              :rules="[v => !v || /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4}$/.test(v) || 'Please enter a valid phone number']"
               class="mb-4"
             ></v-text-field>
           </v-col>
@@ -105,7 +103,7 @@
                   <div class="text-caption text-medium-emphasis">Receive updates about your orders and account</div>
                 </div>
                 <v-switch
-                  v-model="emailNotifications"
+                  v-model="preferences.emailNotifications"
                   color="black"
                   hide-details
                 ></v-switch>
@@ -113,57 +111,48 @@
 
               <div class="d-flex justify-space-between align-center mb-4">
                 <div>
-                  <span class="text-body-1 font-weight-medium">SMS Notifications</span>
-                  <div class="text-caption text-medium-emphasis">Get text messages about order status</div>
+                  <span class="text-body-1 font-weight-medium">Order Updates</span>
+                  <div class="text-caption text-medium-emphasis">Get updates about your orders</div>
                 </div>
                 <v-switch
-                  v-model="smsNotifications"
+                  v-model="preferences.orderUpdates"
+                  color="black"
+                  hide-details
+                ></v-switch>
+              </div>
+
+              <div class="d-flex justify-space-between align-center mb-4">
+                <div>
+                  <span class="text-body-1 font-weight-medium">Promotional Emails</span>
+                  <div class="text-caption text-medium-emphasis">Get promotional emails about our products</div>
+                </div>
+                <v-switch
+                  v-model="preferences.promotionalEmails"
                   color="black"
                   hide-details
                 ></v-switch>
               </div>
 
               <div class="d-flex justify-space-between align-center">
-                <div>
-                  <span class="text-body-1 font-weight-medium">Marketing Communications</span>
-                  <div class="text-caption text-medium-emphasis">Stay updated with new releases and exclusive offers</div>
-                </div>
-                <v-switch
-                  v-model="marketingNotifications"
-                  color="black"
-                  hide-details
-                ></v-switch>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card>
-      </div>
-
-      <!-- Privacy Settings -->
-      <div class="mb-8">
-        <h3 class="text-h6 font-weight-regular mb-6" style="letter-spacing: 0.5px;">Privacy Settings</h3>
-        <v-card variant="outlined" class="pa-4">
-          <v-row>
-            <v-col cols="12">
-              <div class="d-flex justify-space-between align-center mb-4">
                 <div>
                   <span class="text-body-1 font-weight-medium">Profile Visibility</span>
                   <div class="text-caption text-medium-emphasis">Allow other users to see your profile</div>
                 </div>
-                <v-switch
-                  v-model="profileVisibility"
+                <v-select
+                  v-model="preferences.profileVisibility"
+                  :items="['private', 'public']"
                   color="black"
                   hide-details
-                ></v-switch>
+                ></v-select>
               </div>
 
               <div class="d-flex justify-space-between align-center">
                 <div>
-                  <span class="text-body-1 font-weight-medium">Data Collection</span>
-                  <div class="text-caption text-medium-emphasis">Allow us to collect usage data to improve your experience</div>
+                  <span class="text-body-1 font-weight-medium">Data Sharing</span>
+                  <div class="text-caption text-medium-emphasis">Allow us to share your data with third parties</div>
                 </div>
                 <v-switch
-                  v-model="dataCollection"
+                  v-model="preferences.dataSharing"
                   color="black"
                   hide-details
                 ></v-switch>
@@ -171,28 +160,6 @@
             </v-col>
           </v-row>
         </v-card>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="d-flex gap-4 justify-end">
-        <v-btn
-          variant="outlined"
-          color="black"
-          size="large"
-          style="letter-spacing: 0.5px; min-width: 120px;"
-          @click="resetForm"
-        >
-          Cancel
-        </v-btn>
-        <v-btn
-          type="submit"
-          color="black"
-          size="large"
-          style="letter-spacing: 0.5px; min-width: 120px;"
-          :loading="loading"
-        >
-          Save Changes
-        </v-btn>
       </div>
     </v-form>
   </div>
@@ -206,7 +173,7 @@ export default {
   data() {
     return {
       valid: true,
-      loading: false,
+      initialized: false,
       firstName: '',
       lastName: '',
       email: '',
@@ -215,60 +182,119 @@ export default {
       newPassword: '',
       showCurrentPassword: false,
       showNewPassword: false,
-      emailNotifications: true,
-      smsNotifications: false,
-      marketingNotifications: true,
-      profileVisibility: false,
-      dataCollection: true
+      preferences: {
+        emailNotifications: true,
+        orderUpdates: true,
+        promotionalEmails: false,
+        profileVisibility: 'private',
+        dataSharing: false
+      },
+      updateQueue: new Set()
     };
   },
   computed: {
-    ...mapState('user', ['user'])
+    ...mapState('user', ['userInfo']),
+    userData() {
+      return this.userInfo;
+    }
+  },
+  watch: {
+    userData: {
+      immediate: true,
+      handler(newUser) {
+        if (newUser) {
+          this.loadUserData();
+        }
+      }
+    },
+    firstName(newVal) {
+      if (this.initialized && newVal !== this.userData?.firstName) {
+        this.queueUpdate('firstName', newVal);
+      }
+    },
+    lastName(newVal) {
+      if (this.initialized && newVal !== this.userData?.lastName) {
+        this.queueUpdate('lastName', newVal);
+      }
+    },
+    phone(newVal) {
+      if (this.initialized && newVal !== this.userData?.phone) {
+        this.queueUpdate('phone', newVal);
+      }
+    },
+    'preferences': {
+      deep: true,
+      handler(newVal) {
+        if (this.initialized && JSON.stringify(newVal) !== JSON.stringify(this.userData?.preferences)) {
+          this.queueUpdate('preferences', { ...newVal });
+        }
+      }
+    }
   },
   methods: {
     ...mapActions('user', ['updateUserProfile']),
-    async handleSubmit() {
-      if (!this.$refs.form.validate()) return;
-
-      this.loading = true;
-      try {
-        await this.updateUserProfile({
-          firstName: this.firstName,
-          lastName: this.lastName,
-          phone: this.phone,
-          password: this.newPassword || undefined,
-          settings: {
-            emailNotifications: this.emailNotifications,
-            smsNotifications: this.smsNotifications,
-            marketingNotifications: this.marketingNotifications,
-            profileVisibility: this.profileVisibility,
-            dataCollection: this.dataCollection
-          }
-        });
-        // Show success message
-      } catch (error) {
-        console.error('Failed to update profile:', error);
-        // Show error message
-      } finally {
-        this.loading = false;
-      }
+    queueUpdate(field, value) {
+      this.updateQueue.add({ field, value });
+      this.processUpdates();
     },
-    resetForm() {
-      this.$refs.form.reset();
-      this.loadUserData();
+    debounce(fn, delay) {
+      let timeoutId;
+      return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          fn.apply(this, args);
+        }, delay);
+      };
+    },
+    updateProfile(data) {
+      return this.updateUserProfile(data)
+        .catch(error => {
+          console.error('Failed to update profile:', error);
+          throw error;
+        });
     },
     loadUserData() {
-      if (this.user) {
-        this.firstName = this.user.firstName || '';
-        this.lastName = this.user.lastName || '';
-        this.email = this.user.email || '';
-        this.phone = this.user.phone || '';
-        // Load other settings if available
+      if (this.userData) {
+        this.initialized = false;
+        this.firstName = this.userData.firstName || '';
+        this.lastName = this.userData.lastName || '';
+        this.email = this.userData.email || '';
+        this.phone = this.userData.phone || '';
+        
+        if (this.userData.preferences) {
+          this.preferences = {
+            ...this.preferences,
+            ...this.userData.preferences
+          };
+        }
+        
+        this.$nextTick(() => {
+          this.initialized = true;
+        });
       }
     }
   },
   created() {
-    this.loadUserData();
+    this.processUpdates = this.debounce(() => {
+      if (this.updateQueue.size === 0) return;
+
+      const updates = {};
+      this.updateQueue.forEach(update => {
+        if (update.field === 'preferences') {
+          updates.preferences = update.value;
+        } else {
+          updates[update.field] = update.value;
+        }
+      });
+
+      this.updateProfile(updates)
+        .then(() => {
+          this.updateQueue.clear();
+        })
+        .catch(error => {
+          console.error('Failed to process updates:', error);
+        });
+    }, 300);
   }
 };
 </script>
@@ -279,25 +305,41 @@ export default {
   margin: 0 auto;
 }
 
-.v-text-field :deep(.v-field__input) {
-  font-size: 0.95rem !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.5px !important;
+:deep(.v-field__input) {
+  min-height: 44px !important;
+  padding-top: 12px !important;
+  padding-bottom: 0 !important;
 }
 
-.v-text-field :deep(.v-label) {
-  font-size: 0.95rem !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.5px !important;
-  color: var(--v-theme-secondary) !important;
+:deep(.v-field__outline) {
+  --v-field-border-width: 1px !important;
 }
 
-.v-switch :deep(.v-switch__track) {
-  opacity: 0.12;
+:deep(.v-text-field .v-input__details) {
+  padding-inline-start: 0;
+  min-height: 0;
 }
 
-.v-switch :deep(.v-switch__thumb) {
-  color: var(--v-theme-primary);
+:deep(.v-field__field) {
+  gap: 0 !important;
+}
+
+:deep(.v-label) {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  opacity: 0.7;
+}
+
+:deep(.readonly-field) {
+  opacity: 0.6;
+}
+
+:deep(.readonly-field .v-field__input) {
+  color: rgba(0, 0, 0, 0.7) !important;
+}
+
+:deep(.readonly-field .v-field) {
+  background-color: rgb(250, 250, 250) !important;
 }
 
 .gap-4 {
