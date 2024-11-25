@@ -1,6 +1,14 @@
 
 <template>
   <div class="cart-page">
+    <v-snackbar
+      v-model="showError"
+      :color="snackbarColor"
+      timeout="3000"
+    >
+      {{ errorMessage }}
+    </v-snackbar>
+    
     <div class="container">
       <Breadcrumbs />
       
@@ -8,7 +16,14 @@
       <div class="cart-container">
         <div class="cart-header">
           <h1>Shopping Cart</h1>
-          <span class="item-count">{{ cartItems.length }} item{{ cartItems.length !== 1 ? 's' : '' }}</span>
+          <span v-if="itemCount > 0" class="cart-count">({{ itemCount }} items)</span>
+          <router-link 
+            v-if="itemCount === 10 && !isAuthenticated" 
+            to="/register" 
+            class="register-prompt"
+          >
+            Register to continue shopping
+          </router-link>
         </div>
 
         <!-- Main Cart Section -->
@@ -31,7 +46,6 @@
                           class="change-size-select"
                           @change="handleSizeChange(item)"
                         >
-                          <option value="">Size: {{ item.selectedSize }}</option>
                           <option 
                             v-for="size in getAvailableSizes(getProductById(item.id))" 
                             :key="size.value"
@@ -41,6 +55,22 @@
                             {{ size.label }}
                           </option>
                         </select>
+                      </div>
+                      <div class="quantity-controls">
+                        <v-btn
+                          icon="mdi-minus"
+                          size="small"
+                          variant="text"
+                          :disabled="item.quantity <= 1"
+                          @click="updateQuantity(item, item.quantity - 1)"
+                        />
+                        <span class="quantity-display">{{ item.quantity }}</span>
+                        <v-btn
+                          icon="mdi-plus"
+                          size="small"
+                          variant="text"
+                          @click="updateQuantity(item, item.quantity + 1)"
+                        />
                       </div>
                       <p class="price">${{ item.price }}</p>
                     </div>
@@ -63,11 +93,11 @@
                         </select>
                       </div>
                       <button 
+                        class="remove-button"
                         @click="softDeleteFromCart({ id: item.id, selectedSize: item.selectedSize })" 
-                        class="remove-btn"
                       >
-                        <span class="remove-icon">×</span>
-                        Remove
+                        <span class="remove-text">Remove</span>
+                        <span class="remove-underline"></span>
                       </button>
                     </div>
                   </div>
@@ -132,6 +162,7 @@
                   }"
                   @mouseenter="startSplit(group.id, size.size)"
                   @mouseleave="endSplit(group.id, size.size)"
+                  :ref="`removed-${group.id}-${size.size}`"
                 >
                   <div class="removed-item-stack">
                     <div class="product-card">
@@ -145,16 +176,13 @@
                         <span class="text-caption text-medium-emphasis">Size</span>
                         <span class="text-h5 text-medium-emphasis">{{ getDisplaySize({ id: group.id, selectedSize: size.size }) }}</span>
                       </div>
-                      <v-btn
-                        :color="success"
-                        @click="handleRestore($event, { id: group.id, selectedSize: size.size, quantity: size.quantity })"
-                        class="restore-size-btn"
-                        variant="text"
-                        size="small"
-                        elevation="0"
+                      <button 
+                        class="restore-button"
+                        @click="handleRestore($event, { id: group.id, selectedSize: size.size })"
                       >
                         <span class="restore-text">Restore</span>
-                      </v-btn>
+                        <span class="restore-underline"></span>
+                      </button>
                       <div class="time-remaining text-caption">
                         {{ getTimeRemaining({ id: group.id, selectedSize: size.size, expiryTime: size.expiryTime }) }}
                       </div>
@@ -203,7 +231,10 @@ export default {
     const now = ref(Date.now());
     const cardStates = reactive(new Map());
     const timer = ref(null);
-    const updateInterval = 1000;
+    const updateInterval = 60000;
+    const errorMessage = ref('');
+    const showError = ref(false);
+    const snackbarColor = ref('error');
 
     const getCardState = (id, size) => {
       const key = `${id}-${size}`;
@@ -301,13 +332,55 @@ export default {
       startSplit,
       endSplit,
       timer,
-      updateInterval
+      updateInterval,
+      errorMessage,
+      showError,
+      snackbarColor,
+      async restoreItem(id, selectedSize) {
+        try {
+          const result = await this.$store.dispatch('cart/restoreToCart', { id, selectedSize });
+          
+          if (result.message) {
+            this.errorMessage = result.message;
+            this.snackbarColor = 'warning';
+            this.showError = true;
+          } else if (!result.success) {
+            this.errorMessage = result.error;
+            this.snackbarColor = 'error';
+            this.showError = true;
+          }
+        } catch (error) {
+          this.errorMessage = error.message;
+          this.snackbarColor = 'error';
+          this.showError = true;
+        }
+      },
+      async changeSize(item, newSize) {
+        try {
+          const result = await this.$store.dispatch('cart/changeCartItemSize', {
+            id: item.id,
+            oldSize: item.selectedSize,
+            newSize: newSize,
+            quantity: item.quantity
+          });
+          
+          if (!result.success) {
+            this.errorMessage = result.error;
+            this.snackbarColor = 'error';
+            this.showError = true;
+          }
+        } catch (error) {
+          this.errorMessage = error.message;
+          this.snackbarColor = 'error';
+          this.showError = true;
+        }
+      },
     };
   },
   computed: {
-    ...mapGetters('cart', ['cartItems', 'cartTotal', 'removedItems']),
+    ...mapGetters('cart', ['cartItems', 'cartTotal', 'removedItems', 'itemCount']),
     ...mapGetters('products', ['getProductById', 'getProductSizes', 'getSizeConversions']),
-    ...mapGetters('user', ['userPreferredScale']),
+    ...mapGetters('user', ['userPreferredScale', 'isAuthenticated']),
     
     getCurrentScale() {
       return this.userPreferredScale;
@@ -428,30 +501,64 @@ export default {
   },
   methods: {
     ...mapActions('cart', [
-      'softDeleteFromCart', 
-      'restoreToCart', 
       'removeFromRemoved', 
+      'restoreToCart',
+      'softDeleteFromCart',
       'updateCartItemQuantity',
       'changeCartItemSize',
       'addToCart'
     ]),
-    getImageUrl(image) {
-      return getImageUrl(image || DEFAULT_SHOE_IMAGE);
-    },
-    async handleRestore(event, { id, selectedSize, quantity }) {
+    handleRestore(event, { id, selectedSize }) {
       if (event) {
         const rect = event.target.getBoundingClientRect();
         this.mousePosition.x = rect.left + rect.width / 2;
         this.mousePosition.y = rect.top;
       }
+
+      const cardState = this.getCardState(id, selectedSize);
+      cardState.isSplitting = false;
+      cardState.isRestacking = false;
+      cardState.isSwitched = false;
       
-      await this.restoreToCart({ id, selectedSize });
-      await this.removeFromRemoved({ id, selectedSize }); // Explicitly remove from removedItems
-      this.showingConfetti = true;
-      
-      setTimeout(() => {
-        this.showingConfetti = false;
-      }, 2000);
+      this.restoreToCart({ id, selectedSize })
+        .then(result => {
+          if (!result) {
+            this.errorMessage = 'Failed to restore item';
+            this.snackbarColor = 'error';
+            this.showError = true;
+            return;
+          }
+          
+          if (result.message) {
+            this.errorMessage = result.message;
+            this.snackbarColor = 'warning';
+            this.showError = true;
+          } else if (!result.success) {
+            this.errorMessage = result.error || 'Failed to restore item';
+            this.snackbarColor = 'error';
+            this.showError = true;
+            return;
+          }
+
+          // Only remove from removed items and show confetti if successful
+          if (result.success) {
+            this.removeFromRemoved({ id, selectedSize });
+            this.showingConfetti = true;
+            
+            setTimeout(() => {
+              this.showingConfetti = false;
+            }, 2000);
+          }
+        })
+        .catch(error => {
+          console.error('Restore error:', error);
+          this.errorMessage = error?.message || 'An error occurred while restoring the item';
+          this.snackbarColor = 'error';
+          this.showError = true;
+        });
+    },
+    getImageUrl(image) {
+      return getImageUrl(image || DEFAULT_SHOE_IMAGE);
     },
     async handleSizeChange(item) {
       const key = `${item.id}-${item.selectedSize}`;
@@ -460,12 +567,7 @@ export default {
       
       if (!this.isSizeInCart(item.id, newSize)) {
         // Change the size in cart while preserving quantity
-        await this.changeCartItemSize({ 
-          id: item.id, 
-          oldSize: item.selectedSize,
-          newSize,
-          quantity: item.quantity
-        });
+        await this.changeSize(item, newSize);
       }
     },
     isSizeInCart(id, size) {
@@ -496,6 +598,32 @@ export default {
         this.$nextTick(() => {
           this.selectedSizes[key] = '';
         });
+      }
+    },
+    getOriginalQuantity(item) {
+      const cartItem = this.cartItems.find(i => i.id === item.id && i.selectedSize === item.selectedSize);
+      return cartItem ? cartItem.quantity : 1;
+    },
+    async updateQuantity(item, newQuantity) {
+      try {
+        if (newQuantity < 1) return;
+        
+        await this.$store.dispatch('cart/updateCartItemQuantity', {
+          id: item.id,
+          selectedSize: item.selectedSize,
+          quantity: newQuantity
+        });
+      } catch (error) {
+        if (error.message.includes('Unauthenticated users')) {
+          // Reset the quantity input to previous value
+          this.$nextTick(() => {
+            item.quantity = this.getOriginalQuantity(item);
+          });
+          // Show error message
+          this.errorMessage = 'Please register to add more than 10 items to cart';
+          this.snackbarColor = 'error';
+          this.showError = true;
+        }
       }
     }
   }
@@ -627,20 +755,21 @@ export default {
 
 .cart-header {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  align-items: baseline;
+  gap: 0.75rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .cart-header h1 {
   margin: 0;
-  font-size: 2rem;
-  color: #2c3e50;
+  font-weight: 500;
+  color: #1f2937;
 }
 
-.item-count {
-  color: #6c757d;
-  font-size: 1.1rem;
+.cart-count {
+  color: #64748b;
+  font-size: 0.875rem;
 }
 
 .cart-main {
@@ -725,64 +854,154 @@ export default {
   gap: 0.5rem;
 }
 
-.remove-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  color: #dc2626;
-  background: transparent;
-  border: 1px solid #dc2626;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.875rem;
+.restore-button, .remove-button {
+  background-color: transparent;
+  color: #64748b;
+  padding: 4px 12px;
+  border: none;
   font-weight: 500;
-  white-space: nowrap;
-
-  &:hover {
-    background: #dc2626;
-    color: white;
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
+  font-size: 0.875rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  margin: 0.5rem 0;
+  border-radius: 9999px;
 }
 
-.change-size-select,
+.restore-text, .remove-text {
+  position: relative;
+  z-index: 1;
+  transition: color 0.2s ease;
+}
+
+.restore-underline, .remove-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  transition: all 0.2s ease;
+  transform-origin: left;
+  opacity: 0.2;
+  border-radius: 9999px;
+}
+
+.restore-underline {
+  background-color: #10b981;
+}
+
+.remove-underline {
+  background-color: #ef4444;
+}
+
+.restore-button:hover .restore-text {
+  color: #059669;
+}
+
+.remove-button:hover .remove-text {
+  color: #dc2626;
+}
+
+.restore-button:hover .restore-underline {
+  height: 100%;
+  background-color: #10b981;
+  opacity: 0.1;
+}
+
+.remove-button:hover .remove-underline {
+  height: 100%;
+  background-color: #ef4444;
+  opacity: 0.1;
+}
+
+.restore-button:active .restore-underline {
+  background-color: #059669;
+  opacity: 0.15;
+}
+
+.remove-button:active .remove-underline {
+  background-color: #dc2626;
+  opacity: 0.15;
+}
+
+.change-size-select {
+  appearance: none;
+  background-color: transparent;
+  color: #64748b;
+  padding: 4px 12px;
+  border: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  position: relative;
+  margin: 0.5rem 0;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.change-size-select:hover {
+  color: #334155;
+  background-color: #f8fafc;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.change-size-select:focus {
+  outline: none;
+  background-color: #f1f5f9;
+}
+
+.change-size-select option {
+  color: #334155;
+  background-color: white;
+  font-weight: 500;
+}
+
+.change-size-select option:disabled {
+  color: #94a3b8;
+}
+
 .add-size-select {
   appearance: none;
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  color: #4a5568;
-  cursor: pointer;
+  background-color: transparent;
+  color: #64748b;
+  padding: 4px 12px;
+  border: none;
+  font-weight: 500;
   font-size: 0.875rem;
-  line-height: 1.25rem;
-  padding: 0.5rem 2rem 0.5rem 0.75rem;
-  width: auto;
-  min-width: fit-content;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
+  cursor: pointer;
+  position: relative;
+  margin: 0.5rem 0;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
+  background-position: right 8px center;
+}
 
-  &:focus {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
-  }
+.add-size-select:hover {
+  color: #334155;
+  background-color: #f8fafc;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
 
-  &:disabled {
-    background-color: #f7fafc;
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
+.add-size-select:focus {
+  outline: none;
+  background-color: #f1f5f9;
+}
+
+.add-size-select option {
+  color: #334155;
+  background-color: white;
+  font-weight: 500;
+}
+
+.add-size-select option:disabled {
+  color: #94a3b8;
 }
 
 .removed-section {
@@ -864,7 +1083,7 @@ export default {
 }
 
 .product-overlay h4 {
-  color: white;
+  color: gray;
   margin: 0;
   font-size: 0.875rem;
   font-weight: 400;
@@ -982,18 +1201,52 @@ export default {
   font-size: 1.25rem;
 }
 
-.restore-size-btn {
-  margin: 0.25rem 0;
-  opacity: 0.6;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+.restore-button {
+  background-color: transparent;
+  color: #64748b;
+  padding: 4px 12px;
+  border: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
   position: relative;
   overflow: hidden;
-  scale: 0.9;
+  margin: 0.5rem 0;
+  border-radius: 9999px;
 }
 
-.time-remaining {
-  font-size: 0.7rem;
-  line-height: 1;
+.restore-text {
+  position: relative;
+  z-index: 1;
+  transition: color 0.2s ease;
+}
+
+.restore-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #10b981;
+  transition: all 0.2s ease;
+  transform-origin: left;
+  opacity: 0.2;
+  border-radius: 9999px;
+}
+
+.restore-button:hover .restore-text {
+  color: #059669;
+}
+
+.restore-button:hover .restore-underline {
+  height: 100%;
+  background-color: #10b981;
+  opacity: 0.1;
+}
+
+.restore-button:active .restore-underline {
+  background-color: #059669;
+  opacity: 0.15;
 }
 
 .checkout-button {
@@ -1099,6 +1352,38 @@ export default {
   background: #cbd5e1;
   box-shadow: inset 0px 2px 2px rgba(0, 0, 0, 0.1),
               inset 0px -2px 2px rgba(255, 255, 255, 0.8);
+}
+
+.register-prompt {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.register-prompt::after {
+  content: '→';
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.register-prompt:hover {
+  color: #10b981;
+  background-color: #f0fdf4;
+}
+
+.register-prompt:hover::after {
+  transform: translateX(2px);
+}
+
+.register-prompt:active {
+  background-color: #ecfdf5;
 }
 
 /* Responsive adjustments */

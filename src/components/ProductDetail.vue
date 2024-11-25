@@ -11,7 +11,7 @@
           v-for="image in localProduct.images"
           :key="image"
           :src="getImageUrl(image)"
-          @click="setMainImage(image)"
+          @click="changeImage(image)"
           :class="{ selected: currentImage === image }"
           alt="Product image"
           @error="handleImageError($event, image)"
@@ -103,6 +103,13 @@
         <p>Loading product details...</p>
       </div>
     </div>
+    <v-snackbar
+      v-model="showError"
+      color="error"
+      timeout="3000"
+    >
+      {{ errorMessage }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -133,6 +140,8 @@ export default {
       imageLoadErrors: new Set(),
       localProduct: null,
       selectedScale: null,
+      errorMessage: '',
+      showError: false,
     };
   },
   computed: {
@@ -150,8 +159,8 @@ export default {
     }
   },
   methods: {
-    ...mapActions('cart', {
-      addItemToCart: 'addToCart'
+    ...mapActions({
+      addToCartAction: 'cart/addToCart'
     }),
     ...mapActions('user', ['updatePreferredScale']),
     loadProduct(id) {
@@ -181,27 +190,37 @@ export default {
       }
       e.target.src = DEFAULT_SHOE_IMAGE;
     },
-    setMainImage(image) {
+    changeImage(image) {
       this.currentImage = image;
     },
     selectSize(size) {
       this.selectedSize = size;
     },
-    handleAddToCart(event) {
-      if (!this.selectedSize) return;
+    async handleAddToCart(event) {
+      if (!this.selectedSize) {
+        this.errorMessage = 'Please select a size';
+        this.showError = true;
+        return;
+      }
 
-      this.mousePosition.x = event.clientX;
-      this.mousePosition.y = event.clientY;
-      
-      this.addItemToCart({
+      const result = await this.addToCartAction({
         id: this.localProduct.id,
         name: this.localProduct.name,
         price: this.localProduct.price,
         selectedSize: this.selectedSize,
         quantity: 1,
-        image: this.currentImage || this.localProduct.images[0]
+        image: this.localProduct.images[0]
       });
 
+      if (!result.success) {
+        this.errorMessage = result.error;
+        this.showError = true;
+        return;
+      }
+
+      this.mousePosition.x = event.clientX;
+      this.mousePosition.y = event.clientY;
+      
       this.showConfetti = true;
       setTimeout(() => {
         this.showConfetti = false;

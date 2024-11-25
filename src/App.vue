@@ -36,7 +36,8 @@
         style="letter-spacing: 0.5px;"
       >
         <v-icon icon="mdi-shopping" class="me-1" size="small"></v-icon>
-        Cart ({{ cartItemCount }})
+        Cart
+        <span v-if="itemCount > 0" class="cart-badge ms-1">{{ itemCount }}</span>
       </v-btn>
 
       <template v-if="isAuthenticated">
@@ -191,7 +192,7 @@ export default {
   },
   computed: {
     ...mapState('user', ['isAuthenticated']),
-    ...mapGetters('cart', ['cartItemCount'])
+    ...mapGetters('cart', ['itemCount'])
   },
   methods: {
     ...mapActions('user', ['logout', 'initialize']),
@@ -240,6 +241,30 @@ export default {
 
 .text-h5 {
   font-weight: 300 !important;
+}
+
+.cart-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #10b981;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.375rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.v-btn:hover .cart-badge {
+  background-color: #059669;
+  transform: scale(1.05);
+}
+
+.v-btn:active .cart-badge {
+  transform: scale(0.95);
 }
 
 /* Smooth transitions */

@@ -36,7 +36,7 @@ export default {
     const particleCount = 50;
     const colorSchemes = {
       add: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#fff'],
-      restore: ['#22c55e', '#16a34a', '#4ade80', '#86efac', '#fff']
+      restore: ['#10b981', '#059669', '#34d399', '#6ee7b7', '#fff']
     };
 
     const containerStyle = computed(() => ({
